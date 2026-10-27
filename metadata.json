@@ -1,0 +1,8 @@
+{
+  "name": "MEHDI PITA — Official Hub & Social Media",
+  "description": "الموقع الرسمي لصانع المحتوى MEHDI PITA — جميع الحسابات الرسمية، إحصائيات المتابعين، وفيديوهات البثوث المباشرة.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
