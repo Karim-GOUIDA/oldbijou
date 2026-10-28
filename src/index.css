@@ -2,30 +2,30 @@
 
 @layer base {
   body {
-    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
-    background-color: #070614;
+    font-family: 'Cairo', 'Tajawal', 'Outfit', system-ui, -apple-system, sans-serif;
+    background-color: #08090E;
     color: #f1f5f9;
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Cairo', 'Tajawal', sans-serif;
+    font-family: 'Cairo', 'Outfit', sans-serif;
   }
 }
 
-/* Custom purple-blue scrollbar */
+/* Custom Gold-Amber luxury scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #070614;
+  background: #08090E;
 }
 ::-webkit-scrollbar-thumb {
-  background: #312e81;
+  background: #78350f;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+  background: #d97706;
 }
 
 @keyframes marqueeLeft {
@@ -56,31 +56,39 @@
 .animate-marquee-fast {
   display: flex;
   width: max-content;
-  animation: marqueeLeft 24s linear infinite;
+  animation: marqueeLeft 22s linear infinite;
   will-change: transform;
 }
 
 .animate-marquee-reverse {
   display: flex;
   width: max-content;
-  animation: marqueeRight 30s linear infinite;
+  animation: marqueeRight 28s linear infinite;
   will-change: transform;
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 0.65; transform: scale(1.06); }
+@keyframes goldPulseGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.08); }
 }
 
 .animate-pulse-glow {
-  animation: pulseGlow 6s ease-in-out infinite;
+  animation: goldPulseGlow 6s ease-in-out infinite;
 }
 
 @keyframes floatUp {
   0% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-70px) scale(1.4); }
+  100% { opacity: 0; transform: translateY(-75px) scale(1.4); }
 }
 
 .animate-float-up {
   animation: floatUp 1.2s ease-out forwards;
+}
+
+/* Metallic gold shimmer utility */
+.gold-shimmer {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FDE68A 25%, #F59E0B 50%, #D97706 75%, #FDE68A 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

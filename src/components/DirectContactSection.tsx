@@ -1,19 +1,31 @@
 import React, { useState } from 'react';
-import { Flame, Sparkles, Copy, Check, Send, Mail, Zap } from 'lucide-react';
+import { Flame, Sparkles, Copy, Check, Send, Mail, Gem, Trophy } from 'lucide-react';
 import { YoutubeIcon, TikTokIcon, InstagramIcon, FacebookIcon } from './BrandIcons';
-import { INFLUENCER_PROFILE, Language } from '../data/influencerData';
+import { INFLUENCER_PROFILE, Language, SocialPlatform } from '../data/influencerData';
+import { formatFollowerCount } from '../services/statsSync';
 
 interface DirectContactSectionProps {
   lang: Language;
+  platforms?: SocialPlatform[];
 }
 
-export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang }) => {
-  const [hypeCount, setHypeCount] = useState(84920);
+export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang, platforms = [] }) => {
+  const [hypeCount, setHypeCount] = useState(128450);
   const [bursts, setBursts] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const isAr = lang === 'ar';
 
-  const emojis = ['🔥', '⚡', '⚽', '🏆', '💚', '👑'];
+  const yt = platforms.find((p) => p.id === 'youtube');
+  const ig = platforms.find((p) => p.id === 'instagram');
+  const fb = platforms.find((p) => p.id === 'facebook');
+  const tt = platforms.find((p) => p.id === 'tiktok');
+
+  const ytText = formatFollowerCount(yt?.followersRaw ?? 7690);
+  const igText = formatFollowerCount(ig?.followersRaw ?? 48500);
+  const fbText = formatFollowerCount(fb?.followersRaw ?? 35200);
+  const ttText = formatFollowerCount(tt?.followersRaw ?? 28400);
+
+  const emojis = ['💎', '⚽', '🏆', '🔥', '👑', '⚡'];
 
   const handleHype = (e: React.MouseEvent<HTMLButtonElement>) => {
     setHypeCount((prev) => prev + 1);
@@ -44,40 +56,40 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
   };
 
   return (
-    <section className="py-20 md:py-28 bg-[#070614] border-t border-purple-950/60 relative overflow-hidden">
+    <section className="py-20 md:py-28 bg-[#08090E] border-t border-amber-950/30 relative overflow-hidden">
       {/* Background radial glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-r from-violet-600/15 via-indigo-600/20 to-cyan-500/15 blur-[160px] pointer-events-none rounded-full" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-r from-amber-600/10 via-yellow-600/10 to-emerald-600/10 blur-[160px] pointer-events-none rounded-full" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Direct Reach & Official Contact Info (Anchored by #contact) */}
           <div id="contact" className="lg:col-span-7 space-y-6 scroll-mt-28">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent font-mono mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent font-mono mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>{isAr ? 'التواصل المباشر والإيميل الرسمي' : 'Contact direct & Email officiel'}</span>
               </div>
               <h2 className="font-display text-3xl sm:text-4xl font-black text-white">
-                {isAr ? 'تواصل مباشرة مع MEHDI PITA' : 'Contactez directement MEHDI PITA'}
+                {isAr ? 'تواصل مباشرة مع OLDBIJOU' : 'Contactez directement OLDBIJOU'}
               </h2>
               <p className="text-zinc-300 text-sm mt-3 leading-relaxed">
                 {isAr
-                  ? 'للتعاون، الإعلانات، أو التواصل المباشر مع MEHDI PITA، يمكنك مراسلته عبر البريد الإلكتروني الرسمي أو عبر منصات التواصل الرسمية.'
-                  : 'Pour tout partenariat, sponsoring ou contact direct avec MEHDI PITA, contactez-le par email officiel ou sur ses réseaux.'}
+                  ? 'للتعاون الإعلامي، الرعاية الرياضية، الشراكات الإعلانية، أو الاستفسارات، تواصل مع فريق OLDBIJOU عبر البريد الإلكتروني الرسمي.'
+                  : 'Pour les collaborations médias, sponsorings sportifs ou partenariats, écrivez directement à l\'équipe d\'OLDBIJOU.'}
               </p>
             </div>
 
             {/* Direct Email Card with 1-Click Copy */}
-            <div className="p-6 rounded-3xl bg-gradient-to-r from-[#170e38] to-[#0c0a24] border-2 border-purple-500/40 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-[#141724] to-[#0c0f18] border-2 border-amber-500/30 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-purple-600/30 text-cyan-300 flex items-center justify-center shrink-0 border border-purple-500/30">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/30">
                   <Mail size={26} />
                 </div>
                 <div>
                   <div className="text-xs uppercase font-bold text-zinc-400">
-                    {isAr ? 'الإيميل الرسمي المعتمد' : 'Email officiel certifié'}
+                    {isAr ? 'البريد الإلكتروني الرسمي المعتمد' : 'Email officiel certifié'}
                   </div>
-                  <div className="font-display text-lg sm:text-xl font-black text-white font-mono break-all" dir="ltr">
+                  <div className="font-display text-lg sm:text-xl font-black text-amber-100 font-mono break-all" dir="ltr">
                     {INFLUENCER_PROFILE.email}
                   </div>
                 </div>
@@ -86,15 +98,15 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
               <div className="flex items-center gap-2 self-stretch sm:self-auto">
                 <button
                   onClick={handleCopyEmail}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-purple-900/60 hover:bg-purple-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-purple-700/50 cursor-pointer"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-neutral-700 cursor-pointer"
                 >
-                  {copiedEmail ? <Check className="w-4 h-4 text-cyan-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedEmail ? (isAr ? "تم النسخ!" : "Copié !") : (isAr ? "نسخ الإيميل" : "Copier")}</span>
                 </button>
 
                 <a
                   href={`mailto:${INFLUENCER_PROFILE.email}`}
-                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-gradient-to-r from-violet-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-zinc-950 font-black text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{isAr ? 'إرسال رسالة' : 'Écrire un mail'}</span>
@@ -105,103 +117,103 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
             {/* Direct Channels Cards (4 official platforms) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
               <a
-                href="https://www.instagram.com/mehdipita/"
+                href={yt?.url || "https://www.youtube.com/@oldbijou-1/videos"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-[#0d0c24] border border-pink-500/30 hover:border-pink-400 transition-all flex flex-col items-center text-center group"
-              >
-                <div className="w-10 h-10 rounded-xl bg-pink-600/20 text-pink-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                  <InstagramIcon size={20} />
-                </div>
-                <span className="font-bold text-white text-xs">Instagram</span>
-                <span className="text-[11px] text-pink-400 font-bold font-mono">
-                  {isAr ? '213K متابع' : '213K abonnés'}
-                </span>
-              </a>
-
-              <a
-                href="https://www.youtube.com/@Mehdipita"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-[#0d0c24] border border-red-500/30 hover:border-red-500 transition-all flex flex-col items-center text-center group"
+                className="p-4 rounded-2xl bg-[#0e111a] border border-red-500/30 hover:border-red-400 transition-all flex flex-col items-center text-center group cursor-pointer hover:scale-105"
               >
                 <div className="w-10 h-10 rounded-xl bg-red-600/20 text-red-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                   <YoutubeIcon size={20} />
                 </div>
                 <span className="font-bold text-white text-xs">YouTube</span>
                 <span className="text-[11px] text-red-400 font-bold font-mono">
-                  {isAr ? '23.1K مشترك' : '23.1K abonnés'}
+                  {ytText} {isAr ? 'مشترك' : 'abonnés'}
                 </span>
               </a>
 
               <a
-                href="https://www.tiktok.com/@mehdi.piita"
+                href={ig?.url || "https://www.instagram.com/oldbijou/?hl=en"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-[#0d0c24] border border-cyan-500/30 hover:border-cyan-400 transition-all flex flex-col items-center text-center group"
+                className="p-4 rounded-2xl bg-[#0e111a] border border-pink-500/30 hover:border-pink-400 transition-all flex flex-col items-center text-center group cursor-pointer hover:scale-105"
               >
-                <div className="w-10 h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                  <TikTokIcon size={20} />
+                <div className="w-10 h-10 rounded-xl bg-pink-600/20 text-pink-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                  <InstagramIcon size={20} />
                 </div>
-                <span className="font-bold text-white text-xs">TikTok</span>
-                <span className="text-[11px] text-cyan-300 font-bold font-mono">
-                  {isAr ? '13.2K متابع' : '13.2K abonnés'}
+                <span className="font-bold text-white text-xs">Instagram</span>
+                <span className="text-[11px] text-pink-400 font-bold font-mono">
+                  {igText} {isAr ? 'متابع' : 'abonnés'}
                 </span>
               </a>
 
               <a
-                href="https://www.facebook.com/profile.php?id=61563910933144"
+                href={fb?.url || "https://www.facebook.com/profile.php?id=61584924197861"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-[#0d0c24] border border-blue-500/30 hover:border-blue-400 transition-all flex flex-col items-center text-center group"
+                className="p-4 rounded-2xl bg-[#0e111a] border border-blue-500/30 hover:border-blue-400 transition-all flex flex-col items-center text-center group cursor-pointer hover:scale-105"
               >
                 <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                   <FacebookIcon size={20} />
                 </div>
                 <span className="font-bold text-white text-xs">Facebook</span>
                 <span className="text-[11px] text-blue-400 font-bold font-mono">
-                  {isAr ? '113K متابع' : '113K abonnés'}
+                  {fbText} {isAr ? 'متابع' : 'abonnés'}
+                </span>
+              </a>
+
+              <a
+                href={tt?.url || "https://www.tiktok.com/@oldbijou"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 rounded-2xl bg-[#0e111a] border border-emerald-500/30 hover:border-emerald-400 transition-all flex flex-col items-center text-center group cursor-pointer hover:scale-105"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                  <TikTokIcon size={20} />
+                </div>
+                <span className="font-bold text-white text-xs">TikTok</span>
+                <span className="text-[11px] text-emerald-400 font-bold font-mono">
+                  {ttText} {isAr ? 'متابع' : 'abonnés'}
                 </span>
               </a>
             </div>
           </div>
 
-          {/* Interactive Hype Button Column (Secondary / Fan Support) */}
-          <div id="hype" className="lg:col-span-5 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#120e2e] via-[#0d0a26] to-[#070617] border border-purple-500/30 shadow-2xl relative scroll-mt-28">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent font-mono mb-3">
-              <Zap className="w-4 h-4 text-cyan-400 fill-current" />
-              <span>{isAr ? 'نبض الجمهور والتفاعل المباشر' : 'Force & Soutien de la commu'}</span>
+          {/* Interactive Hype Button Column (Jewels & Support) */}
+          <div id="hype" className="lg:col-span-5 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#121624] via-[#0d101b] to-[#08090E] border border-amber-500/30 shadow-2xl relative scroll-mt-28">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent font-mono mb-3">
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span>{isAr ? 'دعم الجمهور وجواهر التشجيع' : 'Force & Soutien communautaire'}</span>
             </div>
 
             <h3 className="font-display text-2xl sm:text-3xl font-black text-white mb-3">
-              {isAr ? 'ارسل حماس وتشجيع لـ MEHDI PITA' : 'Envoyez de la force à MEHDI PITA'}
+              {isAr ? 'أرسل جواهر الدعم لـ OLDBIJOU 💎' : 'Envoyez des joyaux à OLDBIJOU 💎'}
             </h3>
             <p className="text-zinc-300 text-sm leading-relaxed mb-6">
               {isAr
-                ? 'اضغط على الزر لإرسال الدعم والطاقة الإيجابية مباشرة في العداد الحي!'
-                : 'Cliquez sur le bouton pour envoyer votre soutien et faire grimper le compteur en direct !'}
+                ? 'اضغط لإرسال الدعم والشغف الكروي مباشرة والمساهمة في رفع العداد التفاعلي الحي!'
+                : 'Cliquez pour envoyer votre énergie footballistique et faire grimper le compteur de soutien !'}
             </p>
 
-            <div className="mb-6 p-4 rounded-2xl bg-[#080618] border border-purple-500/20 flex items-center justify-between">
+            <div className="mb-6 p-4 rounded-2xl bg-[#090b12] border border-amber-500/20 flex items-center justify-between">
               <div>
                 <div className="text-xs uppercase font-bold text-zinc-400">
-                  {isAr ? 'إجمالي الحماس المرسل' : 'Total de force envoyée'}
+                  {isAr ? 'إجمالي الجواهر المرسلة' : 'Total de joyaux envoyés'}
                 </div>
-                <div className="font-display text-3xl sm:text-4xl font-black bg-gradient-to-r from-violet-300 via-indigo-200 to-cyan-400 bg-clip-text text-transparent font-mono tabular-nums">
+                <div className="font-display text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-400 bg-clip-text text-transparent font-mono tabular-nums">
                   {hypeCount.toLocaleString()}
                 </div>
               </div>
-              <div className="w-3.5 h-3.5 rounded-full bg-cyan-400 animate-ping" />
+              <div className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping" />
             </div>
 
             {/* Tap to Send Hype Button */}
             <div className="relative">
               <button
                 onClick={handleHype}
-                className="w-full py-5 bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-black text-base sm:text-lg rounded-2xl transition-all shadow-xl shadow-indigo-600/40 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer select-none"
+                className="w-full py-5 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-zinc-950 font-black text-base sm:text-lg rounded-2xl transition-all shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer select-none"
               >
-                <Flame className="w-6 h-6 text-cyan-200 fill-current animate-bounce" />
-                <span>{isAr ? 'اضغط لإرسال الحماس 🔥' : 'Envoyer de la force 🔥'}</span>
+                <Gem className="w-6 h-6 text-zinc-950 fill-current animate-bounce" />
+                <span>{isAr ? 'أرسل جوهرة دعم كروي 💎' : 'Envoyer un bijou de soutien 💎'}</span>
               </button>
 
               {/* Floating Emojis */}

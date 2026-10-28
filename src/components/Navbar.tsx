@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { BadgeCheck, Share2, QrCode, Globe, Mail } from 'lucide-react';
-import { Language } from '../data/influencerData';
+import { BadgeCheck, Share2, QrCode, Globe, Mail, Gem } from 'lucide-react';
+import { Language, INFLUENCER_PROFILE } from '../data/influencerData';
 
 interface NavbarProps {
   lang: Language;
   onToggleLang: () => void;
   onOpenQr: () => void;
   onCopyLink: () => void;
+  onOpenStats?: () => void;
   copied: boolean;
 }
 
@@ -15,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleLang,
   onOpenQr,
   onCopyLink,
+  onOpenStats,
   copied
 }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -33,39 +35,49 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#070614]/90 backdrop-blur-xl border-b border-purple-500/20 shadow-2xl shadow-indigo-950/70 py-3.5'
+          ? 'bg-[#08090E]/95 backdrop-blur-xl border-b border-amber-500/20 shadow-2xl shadow-black/80 py-3.5'
           : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sm:gap-6">
-        {/* Brand Name: ALWAYS MEHDI PITA ONLY */}
+        {/* Brand: OLDBIJOU */}
         <a
           href="#"
-          className="flex items-center gap-2 group whitespace-nowrap shrink-0 focus:outline-none"
+          className="flex items-center gap-2.5 group whitespace-nowrap shrink-0 focus:outline-none"
         >
-          <span className="font-display text-2xl sm:text-3xl font-black tracking-tight uppercase bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-300 bg-clip-text text-transparent group-hover:from-violet-300 group-hover:to-cyan-200 transition-all font-mono">
-            MEHDI PITA
-          </span>
-          <BadgeCheck className="w-5 h-5 text-cyan-400 shrink-0" aria-label="Verified" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+            <Gem className="w-5 h-5 fill-current" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="font-display text-2xl sm:text-3xl font-black tracking-tight uppercase bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 bg-clip-text text-transparent group-hover:from-white group-hover:to-amber-200 transition-all font-mono">
+                {INFLUENCER_PROFILE.name}
+              </span>
+              <BadgeCheck className="w-4 h-4 text-emerald-400 shrink-0" aria-label="Verified" />
+            </div>
+            <span className="text-[10px] font-bold text-amber-400/80 tracking-widest uppercase font-mono -mt-1 hidden sm:block">
+              Football Hub & Stories
+            </span>
+          </div>
         </a>
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-bold text-zinc-300">
           <a
             href="#platforms"
-            className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0"
+            className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0"
           >
-            {isAr ? 'جميع المنصات والمتابعين' : 'Réseaux & Abonnés'}
+            {isAr ? 'المنصات الرسمية والمتابعين' : 'Réseaux & Abonnés'}
           </a>
           <a
             href="#videos"
-            className="hover:text-violet-400 transition-colors whitespace-nowrap shrink-0"
+            className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0"
           >
-            {isAr ? 'فيديوهات يوتيوب' : 'Vidéos YouTube'}
+            {isAr ? 'فيديوهات وتحليلات YouTube' : 'Vidéos YouTube'}
           </a>
           <a
             href="#contact"
-            className="hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0"
+            className="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0"
           >
             {isAr ? 'التواصل والإيميل' : 'Contact & Email'}
           </a>
@@ -77,17 +89,30 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onToggleLang}
             title={isAr ? "Passer au français" : "التحويل إلى العربية"}
-            className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/80 border border-purple-600/40 text-xs font-bold text-cyan-300 hover:text-white transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+            className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-amber-950/40 hover:bg-amber-900/60 border border-amber-600/30 text-xs font-bold text-amber-300 hover:text-white transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
           >
-            <Globe className="w-3.5 h-3.5 text-cyan-400" />
+            <Globe className="w-3.5 h-3.5 text-amber-400" />
             <span className="font-mono font-black">{isAr ? 'FR' : 'العربية'}</span>
           </button>
+
+          {onOpenStats && (
+            <button
+              onClick={onOpenStats}
+              title={isAr ? "إدارة ومزامنة الأرقام الحقيقية (APIs)" : "Gérer les métriques réelles (APIs)"}
+              className="p-2 text-amber-300 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 rounded-xl transition-all border border-amber-600/30 cursor-pointer flex items-center gap-1.5"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[11px] font-bold font-mono hidden lg:inline">
+                {isAr ? 'الأرقام الحقيقية' : 'Stats Live'}
+              </span>
+            </button>
+          )}
 
           <button
             onClick={onCopyLink}
             title={copied ? (isAr ? "تم النسخ!" : "Lien copié !") : (isAr ? "نسخ الرابط" : "Copier le lien")}
             aria-label="Share"
-            className="p-2 text-zinc-400 hover:text-cyan-300 hover:bg-purple-950/40 rounded-xl transition-all border border-purple-900/40 cursor-pointer"
+            className="p-2 text-zinc-400 hover:text-amber-300 hover:bg-amber-950/40 rounded-xl transition-all border border-neutral-800 cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
           </button>
@@ -95,16 +120,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onOpenQr}
             title={isAr ? "باركود الهاتف" : "QR Code"}
             aria-label="QR Code"
-            className="p-2 text-zinc-400 hover:text-cyan-300 hover:bg-purple-950/40 rounded-xl transition-all border border-purple-900/40 hidden sm:inline-flex cursor-pointer"
+            className="p-2 text-zinc-400 hover:text-amber-300 hover:bg-amber-950/40 rounded-xl transition-all border border-neutral-800 hidden sm:inline-flex cursor-pointer"
           >
             <QrCode className="w-4 h-4" />
           </button>
           <a
             href="#contact"
-            className="px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-violet-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 rounded-xl transition-all shadow-lg shadow-indigo-900/40 whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-black text-zinc-950 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 rounded-xl transition-all shadow-lg shadow-amber-500/20 whitespace-nowrap shrink-0 flex items-center gap-1.5 cursor-pointer"
           >
             <Mail size={15} />
-            <span>{isAr ? 'تواصل معي' : 'Contact'}</span>
+            <span>{isAr ? 'تواصل مع OLDBIJOU' : 'Contact'}</span>
           </a>
         </div>
       </div>
