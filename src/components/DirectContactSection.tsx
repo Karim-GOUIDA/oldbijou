@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Flame, Sparkles, Copy, Check, Send, Mail, Gem, Trophy } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Flame, Sparkles, Copy, Check, Send, Mail, Gem, Trophy, Globe2 } from 'lucide-react';
 import { YoutubeIcon, TikTokIcon, InstagramIcon, FacebookIcon } from './BrandIcons';
 import { INFLUENCER_PROFILE, Language, SocialPlatform } from '../data/influencerData';
 import { formatFollowerCount } from '../services/statsSync';
@@ -10,9 +10,11 @@ interface DirectContactSectionProps {
 }
 
 export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang, platforms = [] }) => {
-  const [hypeCount, setHypeCount] = useState(128450);
+  // Starts strictly from 0 as requested, not static
+  const [hypeCount, setHypeCount] = useState<number>(0);
   const [bursts, setBursts] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [isOnlineSyncing, setIsOnlineSyncing] = useState(false);
   const isAr = lang === 'ar';
 
   const yt = platforms.find((p) => p.id === 'youtube');
@@ -27,9 +29,39 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
 
   const emojis = ['💎', '⚽', '🏆', '🔥', '👑', '⚡'];
 
-  const handleHype = (e: React.MouseEvent<HTMLButtonElement>) => {
+  // Fetch online gems count on mount and sync periodically across all users
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchGems = async () => {
+      try {
+        const res = await fetch('/api/gems');
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.count === 'number' && isMounted) {
+            setHypeCount(data.count);
+          }
+        }
+      } catch (err) {
+        // Fallback silently if offline
+      }
+    };
+
+    fetchGems();
+    // Poll every 4 seconds to sync online clicks from all visitors
+    const interval = setInterval(fetchGems, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleHype = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // 1. Immediate visual increment
     setHypeCount((prev) => prev + 1);
 
+    // 2. Burst animation
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left + (Math.random() * 40 - 20);
     const y = e.clientY - rect.top - 20;
@@ -47,6 +79,26 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
     setTimeout(() => {
       setBursts((prev) => prev.filter((b) => b.id !== newBurst.id));
     }, 1200);
+
+    // 3. Persist online on the server variable (not in session!)
+    try {
+      setIsOnlineSyncing(true);
+      const res = await fetch('/api/gems/increment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 1 })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.count === 'number') {
+          setHypeCount(data.count);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to persist gem to server:', err);
+    } finally {
+      setIsOnlineSyncing(false);
+    }
   };
 
   const handleCopyEmail = () => {
@@ -196,14 +248,20 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
 
             <div className="mb-6 p-4 rounded-2xl bg-[#090b12] border border-amber-500/20 flex items-center justify-between">
               <div>
-                <div className="text-xs uppercase font-bold text-zinc-400">
-                  {isAr ? 'إجمالي الجواهر المرسلة' : 'Total de joyaux envoyés'}
+                <div className="flex items-center gap-2 text-xs uppercase font-bold text-zinc-400 mb-1">
+                  <span>{isAr ? 'إجمالي الجواهر المرسلة' : 'Total de joyaux envoyés'}</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {isAr ? 'أونلاين مباشر' : 'En ligne direct'}
+                  </span>
                 </div>
                 <div className="font-display text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-400 bg-clip-text text-transparent font-mono tabular-nums">
                   {hypeCount.toLocaleString()}
                 </div>
               </div>
-              <div className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping" />
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping" />
+              </div>
             </div>
 
             {/* Tap to Send Hype Button */}

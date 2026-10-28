@@ -178,6 +178,62 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
     if (tt?.followersRaw) setTtCount(tt.followersRaw.toString());
   }, [yt?.followersRaw, ig?.followersRaw, fb?.followersRaw, tt?.followersRaw]);
 
+  // Online Gems Management
+  const [onlineGems, setOnlineGems] = useState<number>(0);
+  const [gemsInputVal, setGemsInputVal] = useState<string>('0');
+
+  useEffect(() => {
+    const fetchGems = async () => {
+      try {
+        const res = await fetch('/api/gems');
+        if (res.ok) {
+          const d = await res.json();
+          if (typeof d.count === 'number') {
+            setOnlineGems(d.count);
+            setGemsInputVal(d.count.toString());
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+    fetchGems();
+  }, []);
+
+  const handleSaveGems = async () => {
+    const parsed = parseInt(gemsInputVal.replace(/[^0-9]/g, ''), 10) || 0;
+    try {
+      const res = await fetch('/api/gems/set', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: parsed })
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setOnlineGems(d.count);
+        setSavedSuccess(isAr ? 'تم تحديث عداد الجواهر الأونلاين بنجاح!' : 'Compteur de joyaux en ligne mis à jour !');
+        setTimeout(() => setSavedSuccess(null), 3000);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleResetGems = async () => {
+    try {
+      const res = await fetch('/api/gems/reset', { method: 'POST' });
+      if (res.ok) {
+        const d = await res.json();
+        setOnlineGems(d.count);
+        setGemsInputVal('0');
+        setSavedSuccess(isAr ? 'تم تصفير عداد الجواهر إلى 0 بنجاح' : 'Joyaux réinitialisés à 0');
+        setTimeout(() => setSavedSuccess(null), 3000);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -748,6 +804,79 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                     className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-purple-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-purple-400/50 cursor-pointer"
                   >
                     💎 100B / 4.85M / 352M / 28.4M
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ONLINE GEMS SUPPORT CONTROLLER (أرسل جواهر الدعم لـ OLDBIJOU 💎) */}
+            <div className="p-6 rounded-3xl bg-[#0e1220] border-2 border-amber-500/50 shadow-2xl mb-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-neutral-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-zinc-950 flex items-center justify-center font-black shadow-lg">
+                    <Gem className="w-5 h-5 fill-current" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-white text-base">
+                      {isAr ? 'عداد جواهر الدعم أونلاين 💎 (Online Gems Counter)' : 'Compteur de Joyaux de Soutien en Ligne 💎'}
+                    </h3>
+                    <p className="text-[11px] text-zinc-400 font-mono">
+                      {isAr ? 'يبدأ من 0 ويتحدث أونلاين عبر السيرفر مع كل نقرة من أي زائر' : 'Commence à 0 et se met à jour en ligne à chaque clic'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    {isAr ? 'متصل بالسيرفر أونلاين' : 'Connecté en ligne'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                <div className="md:col-span-5 p-4 rounded-2xl bg-[#07080e] border border-amber-500/30 flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] text-zinc-400 uppercase font-mono block">
+                      {isAr ? 'العدد الحالي المسجل بالسيرفر:' : 'Total actuel sur le serveur :'}
+                    </span>
+                    <span className="font-display text-3xl font-black bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-400 bg-clip-text text-transparent font-mono tabular-nums">
+                      {onlineGems.toLocaleString()}
+                    </span>
+                  </div>
+                  <Gem className="w-7 h-7 text-amber-400" />
+                </div>
+
+                <div className="md:col-span-7 flex flex-wrap items-center gap-3">
+                  <div className="flex-1 min-w-[140px]">
+                    <label className="text-[11px] text-zinc-400 font-mono block mb-1">
+                      {isAr ? 'تعديل أو تعيين القيمة يدوياً:' : 'Définir la valeur :'}
+                    </label>
+                    <input
+                      type="text"
+                      value={gemsInputVal}
+                      onChange={(e) => setGemsInputVal(e.target.value.replace(/[^0-9]/g, ''))}
+                      className="w-full px-4 py-2.5 bg-[#07080e] border border-neutral-700 focus:border-amber-400 rounded-xl text-white font-mono font-bold text-sm focus:outline-none"
+                      dir="ltr"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveGems}
+                    className="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-zinc-950 font-black text-xs rounded-xl hover:scale-105 transition-all cursor-pointer shadow-md self-end"
+                  >
+                    {isAr ? 'تعيين القيمة' : 'Appliquer'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetGems}
+                    className="px-4 py-2.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 font-bold text-xs rounded-xl border border-red-500/30 transition-all cursor-pointer self-end flex items-center gap-1.5"
+                    title={isAr ? "تصفير العداد إلى 0" : "Réinitialiser à 0"}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'تصفير إلى 0' : 'Remettre à 0'}</span>
                   </button>
                 </div>
               </div>
