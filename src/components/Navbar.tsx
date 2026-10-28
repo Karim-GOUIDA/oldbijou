@@ -95,19 +95,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-mono font-black">{isAr ? 'FR' : 'العربية'}</span>
           </button>
 
-          {onOpenStats && (
-            <button
-              onClick={onOpenStats}
-              title={isAr ? "إدارة ومزامنة الأرقام الحقيقية (APIs)" : "Gérer les métriques réelles (APIs)"}
-              className="p-2 text-amber-300 hover:text-white bg-amber-950/40 hover:bg-amber-900/60 rounded-xl transition-all border border-amber-600/30 cursor-pointer flex items-center gap-1.5"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] font-bold font-mono hidden lg:inline">
-                {isAr ? 'الأرقام الحقيقية' : 'Stats Live'}
-              </span>
-            </button>
-          )}
-
           <button
             onClick={onCopyLink}
             title={copied ? (isAr ? "تم النسخ!" : "Lien copié !") : (isAr ? "نسخ الرابط" : "Copier le lien")}

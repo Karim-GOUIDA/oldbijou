@@ -51,25 +51,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Typographic and Content Column */}
           <div className="md:col-span-7 flex flex-col justify-center">
-            {/* Verified Creator Tag & Real Stats Link */}
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <button
-                onClick={onOpenStats}
-                title={isAr ? "انقر لإدارة ومزامنة الأرقام الحقيقية وربط APIs" : "Cliquer pour gérer les chiffres réels et APIs"}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-950/40 hover:bg-amber-900/60 border border-amber-500/30 hover:border-amber-400 text-xs font-bold text-amber-300 shadow-md backdrop-blur-md transition-all cursor-pointer group"
-              >
-                <Gem className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
-                <span className="tracking-wide font-mono text-xs">
-                  {isAr ? 'المنصة الرسمية المعتمدة · OLDBIJOU' : 'Hub Officiel Certifié · OLDBIJOU'}
-                </span>
-                <span className="text-zinc-600" aria-hidden="true">·</span>
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {isAr ? 'أرقام حقيقية ومزامنة حية' : 'Stats réelles & live'}
-                </span>
-              </button>
-            </div>
-
             {/* Main Headline: OLDBIJOU */}
             <div className="flex items-center gap-3 sm:gap-4 mb-5">
               <img
@@ -98,7 +79,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <span aria-hidden="true">·</span>
                 <span className="text-red-400">{INFLUENCER_PROFILE.youtubeHandle}</span>
               </div>
-              <p className="text-base text-zinc-300 leading-relaxed max-w-2xl pt-1">
+              <p className="text-base text-zinc-300 leading-relaxed max-w-2xl pt-1 whitespace-pre-line">
                 {isAr ? INFLUENCER_PROFILE.bioAr : INFLUENCER_PROFILE.bioFr}
               </p>
             </div>

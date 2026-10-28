@@ -29,12 +29,12 @@ export const MarqueeTicker: React.FC<MarqueeTickerProps> = ({
 
   const items = isAr
     ? [
-        "OLDBIJOU 💎",
-        `يوتيوب: ${ytText} مشترك · 781 فيديو تحليلي (@OLDBIJOU-1)`,
+        "OLDBIJOU (Khalil) 💎",
+        `يوتيوب: ${ytText} مشترك · 781 فيديو (@OLDBIJOU-1)`,
         `إنستغرام: ${igText} متابع (@OLDBIJOU)`,
         `فيسبوك: ${fbText} متابع (OLD BIJOU OFFICIAL)`,
         `تيك توك: ${ttText} متابع (@OLDBIJOU)`,
-        "محلل وباحث كروي ⚽💎 جواهر وتاريخ المستديرة",
+        "صانع محتوى وستوريات كروية ⚽🎭 والمبالغة فنّ بوحدو",
         "✨لكل أسطورة بداية.. ولكل جوهرة كروية حكاية✨",
         "OLDBIJOUCO@GMAIL.COM"
       ]

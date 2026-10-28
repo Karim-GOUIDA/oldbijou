@@ -26,7 +26,8 @@ import {
   MinusCircle,
   TrendingUp,
   Zap,
-  Layers
+  Layers,
+  Globe
 } from 'lucide-react';
 import { SocialPlatform, Language, RealVideo } from '../data/influencerData';
 import { formatFollowerCount } from '../services/statsSync';
@@ -35,6 +36,7 @@ import { YoutubeIcon, InstagramIcon, FacebookIcon, TikTokIcon } from '../compone
 
 interface NumbersAdminPageProps {
   lang: Language;
+  onToggleLang?: () => void;
   platforms: SocialPlatform[];
   isSyncing: boolean;
   syncSource: string;
@@ -76,6 +78,7 @@ const AUTH_STORAGE_KEY = 'oldbijou_admin_authenticated_session';
 
 export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   lang,
+  onToggleLang,
   platforms,
   isSyncing,
   syncSource,
@@ -90,7 +93,36 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   onResetVideos,
   onMoveVideo
 }) => {
-  const isAr = lang === 'ar';
+  const [adminLang, setAdminLang] = useState<Language>(() => {
+    try {
+      const saved = localStorage.getItem('oldbijou_admin_lang');
+      if (saved === 'fr' || saved === 'ar') return saved as Language;
+    } catch {
+      // ignore
+    }
+    return lang || 'ar';
+  });
+
+  useEffect(() => {
+    if (lang && lang !== adminLang) {
+      setAdminLang(lang);
+    }
+  }, [lang]);
+
+  const handleToggleLanguage = () => {
+    const next = adminLang === 'ar' ? 'fr' : 'ar';
+    setAdminLang(next);
+    try {
+      localStorage.setItem('oldbijou_admin_lang', next);
+    } catch {
+      // ignore
+    }
+    if (onToggleLang) {
+      onToggleLang();
+    }
+  };
+
+  const isAr = adminLang === 'ar';
 
   // Navigation tab inside Admin: 'numbers' | 'videos'
   const [activeTab, setActiveTab] = useState<'numbers' | 'videos'>('numbers');
@@ -341,7 +373,21 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
       <div
         className="min-h-screen bg-[#06070B] text-zinc-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden"
         dir={isAr ? 'rtl' : 'ltr'}
+        lang={adminLang}
       >
+        {/* Top bar with Language Switcher (FR / AR) */}
+        <div className="absolute top-5 right-5 sm:top-8 sm:right-8 z-30">
+          <button
+            type="button"
+            onClick={handleToggleLanguage}
+            title={isAr ? "Passer en Français" : "التحويل إلى العربية"}
+            className="px-3.5 py-2 rounded-xl bg-[#0e111a]/90 hover:bg-[#151928] border border-amber-500/40 text-amber-300 hover:text-white text-xs font-bold font-mono transition-all flex items-center gap-2 shadow-2xl cursor-pointer"
+          >
+            <Globe className="w-4 h-4 text-amber-400" />
+            <span>{isAr ? 'FR (Français)' : 'العربية (AR)'}</span>
+          </button>
+        </div>
+
         {/* Ambient lighting */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-gradient-to-tr from-amber-500/10 via-yellow-600/10 to-transparent blur-[160px] pointer-events-none rounded-full" />
 
@@ -355,7 +401,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
               OLDBIJOU CONTROL CENTER
             </h1>
             <p className="text-amber-400 text-xs font-bold font-mono tracking-widest mt-1">
-              /oldbijonumbers · الأرقام والفيديوهات
+              /oldbijonumbers · {isAr ? 'الأرقام والفيديوهات' : 'Chiffres & Vidéos'}
             </p>
             <p className="text-zinc-400 text-sm mt-3">
               {isAr
@@ -376,7 +422,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
 
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-amber-300 font-mono mb-2">
-                  {isAr ? 'اسم المستخدم (User):' : 'Nom d\'utilisateur :'}
+                  {isAr ? 'اسم المستخدم (User):' : 'Nom d\'utilisateur (User) :'}
                 </label>
                 <input
                   type="text"
@@ -391,7 +437,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
 
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-amber-300 font-mono mb-2">
-                  {isAr ? 'الرمز السري (Code):' : 'Code secret :'}
+                  {isAr ? 'الرمز السري (Code):' : 'Code secret (Code) :'}
                 </label>
                 <input
                   type="password"
@@ -408,7 +454,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                 className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-zinc-950 font-black text-sm rounded-xl transition-all shadow-xl shadow-amber-500/20 hover:scale-[1.02] cursor-pointer flex items-center justify-center gap-2 mt-4"
               >
                 <Lock className="w-4 h-4" />
-                <span>{isAr ? 'تسجيل الدخول إلى لوحة التحكم' : 'Accéder au panneau'}</span>
+                <span>{isAr ? 'تسجيل الدخول إلى لوحة التحكم' : 'Accéder au panneau de contrôle'}</span>
               </button>
             </form>
 
@@ -417,7 +463,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                 onClick={onNavigateHome}
                 className="text-xs text-zinc-400 hover:text-amber-300 font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
-                <span>{isAr ? 'العودة إلى الموقع الرئيسي' : 'Retourner au site'}</span>
+                <span>{isAr ? 'العودة إلى الموقع الرئيسي' : 'Retourner au site principal'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -434,6 +480,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
     <div
       className="min-h-screen bg-[#07080E] text-zinc-100 flex flex-col font-sans selection:bg-amber-400 selection:text-zinc-950 pb-20"
       dir={isAr ? 'rtl' : 'ltr'}
+      lang={adminLang}
     >
       {/* Toast */}
       {savedSuccess && (
@@ -456,16 +503,27 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                   OLDBIJOU
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/40">
-                  لوحة التحكم
+                  {isAr ? 'لوحة التحكم' : 'Panneau de contrôle'}
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 font-mono">
-                المشرف: <code className="text-amber-400">oldbijou</code> · Route: <code className="text-zinc-300">/oldbijonumbers</code>
+                {isAr ? 'المشرف:' : 'Admin :'} <code className="text-amber-400">oldbijou</code> · Route: <code className="text-zinc-300">/oldbijonumbers</code>
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Language Switcher (FR / AR) */}
+            <button
+              type="button"
+              onClick={handleToggleLanguage}
+              title={isAr ? "Passer en Français" : "التحويل إلى العربية"}
+              className="px-3 py-2 bg-neutral-900 hover:bg-neutral-800 text-amber-300 hover:text-white rounded-xl text-xs font-bold font-mono transition-all border border-neutral-700 hover:border-amber-400/60 flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <Globe className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isAr ? 'FR' : 'العربية'}</span>
+            </button>
+
             <button
               onClick={onNavigateHome}
               className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-bold transition-all border border-neutral-700 flex items-center gap-1.5 cursor-pointer hover:border-amber-400/60"
@@ -711,7 +769,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                       </div>
                     </div>
                     <span className="text-[10px] px-2 py-0.5 rounded-md bg-red-950 text-red-300 font-mono font-bold border border-red-500/30">
-                      قناة رسمية
+                      {isAr ? 'قناة رسمية' : 'Chaîne officielle'}
                     </span>
                   </div>
 
@@ -834,7 +892,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                       </div>
                     </div>
                     <span className="text-[10px] px-2 py-0.5 rounded-md bg-pink-950 text-pink-300 font-mono font-bold border border-pink-500/30">
-                      موثق
+                      {isAr ? 'موثق' : 'Vérifié'}
                     </span>
                   </div>
 
@@ -957,7 +1015,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                       </div>
                     </div>
                     <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-950 text-blue-300 font-mono font-bold border border-blue-500/30">
-                      صفحة معتمدة
+                      {isAr ? 'صفحة معتمدة' : 'Page officielle'}
                     </span>
                   </div>
 
@@ -1080,7 +1138,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                       </div>
                     </div>
                     <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 font-mono font-bold border border-emerald-500/30">
-                      شورتس
+                      {isAr ? 'شورتس' : 'Shorts'}
                     </span>
                   </div>
 

@@ -22,17 +22,9 @@ import { Check } from 'lucide-react';
 
 function isOldbijouAdminPath(): boolean {
   if (typeof window === 'undefined') return false;
-  const p = window.location.pathname.toLowerCase();
-  const h = window.location.hash.toLowerCase();
-  const s = window.location.search.toLowerCase();
-  return (
-    p.includes('oldbijonumbers') ||
-    p.includes('oldbijounumbers') ||
-    h.includes('oldbijonumbers') ||
-    h.includes('oldbijounumbers') ||
-    s.includes('oldbijonumbers') ||
-    s.includes('admin=true')
-  );
+  const p = window.location.pathname.toLowerCase().replace(/\/+$/, '');
+  // STRICT: Only enter admin if the pathname is explicitly /oldbijonumbers
+  return p === '/oldbijonumbers' || p === '/oldbijounumbers';
 }
 
 export default function App() {
@@ -66,27 +58,23 @@ export default function App() {
   } = useVideos();
 
   useEffect(() => {
+    // If there was any legacy hash from previous turns, clean it up so home page remains clean
+    if (window.location.hash.toLowerCase().includes('oldbijonumbers')) {
+      try {
+        window.history.replaceState(null, '', window.location.pathname || '/');
+      } catch {
+        // ignore
+      }
+    }
+
     const handleLocationChange = () => {
       setIsAdminView(isOldbijouAdminPath());
     };
     window.addEventListener('popstate', handleLocationChange);
-    window.addEventListener('hashchange', handleLocationChange);
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
-      window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
-
-  const navigateToAdmin = () => {
-    try {
-      window.history.pushState({}, '', '/oldbijonumbers');
-    } catch {
-      // fallback
-    }
-    window.location.hash = 'oldbijonumbers';
-    setIsAdminView(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const navigateToHome = () => {
     try {
@@ -94,7 +82,6 @@ export default function App() {
     } catch {
       // fallback
     }
-    window.location.hash = '';
     setIsAdminView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -125,6 +112,7 @@ export default function App() {
     return (
       <NumbersAdminPage
         lang={lang}
+        onToggleLang={toggleLang}
         platforms={platforms}
         isSyncing={isSyncing}
         syncSource={syncSource}
@@ -163,7 +151,6 @@ export default function App() {
         lang={lang}
         onToggleLang={toggleLang}
         onOpenQr={() => setIsQrOpen(true)}
-        onOpenStats={navigateToAdmin}
         onCopyLink={handleCopyProfileLink}
         copied={copiedLink}
       />
@@ -175,7 +162,6 @@ export default function App() {
           lang={lang}
           platforms={platforms}
           onSelectPlatform={handleSelectPlatform}
-          onOpenStats={navigateToAdmin}
         />
 
         {/* Endless Scrolling Ribbon with Dynamic Numbers */}
@@ -186,7 +172,6 @@ export default function App() {
           lang={lang}
           platforms={platforms}
           onSelectPreview={(platform) => handleSelectPlatform(platform.id)}
-          onOpenStats={navigateToAdmin}
           selectedPlatformId={highlightedPlatformId}
         />
 
@@ -198,7 +183,6 @@ export default function App() {
           lang={lang}
           platforms={platforms}
           videos={videos}
-          onNavigateAdmin={navigateToAdmin}
         />
 
         {/* Direct Contact & Fan Hype Section */}
@@ -209,7 +193,6 @@ export default function App() {
       <Footer
         lang={lang}
         platforms={platforms}
-        onNavigateAdmin={navigateToAdmin}
       />
 
       {/* Floating Bottom Quick Dock */}
