@@ -118,37 +118,15 @@ Deno.serve(async (request: Request) => {
   });
 
   if (request.method === "POST") {
-    const clientAddress = request.headers.get("cf-connecting-ip") ??
-      request.headers.get("x-forwarded-for")?.split(",")[0].trim();
-    if (!clientAddress) {
-      return jsonResponse({ error: "Unable to verify the visitor for support rate limiting." }, 400, origin);
-    }
-
-    const hmacKey = await crypto.subtle.importKey(
-      "raw",
-      new TextEncoder().encode(serviceRoleKey),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"],
-    );
-    const signature = await crypto.subtle.sign("HMAC", hmacKey, new TextEncoder().encode(clientAddress));
-    const clientHash = Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
-    const { data, error } = await supabase.rpc("record_public_support", {
-      p_client_hash: clientHash,
-    });
+    const { data, error } = await supabase.rpc("record_public_support");
     if (error) {
       console.error("Unable to record public support:", error.message);
       return jsonResponse({ error: "Unable to record your support right now." }, 500, origin);
     }
     const result = Array.isArray(data) ? data[0] : data;
-    if (!result || typeof result.gems_count !== "number" || typeof result.rate_limited !== "boolean") {
+    if (!result || typeof result.gems_count !== "number") {
       console.error("Public support counter returned an invalid result.");
       return jsonResponse({ error: "The support counter returned an invalid response." }, 500, origin);
-    }
-    if (result.rate_limited) {
-      const response = jsonResponse({ error: "Please wait a minute before sending more support." }, 429, origin);
-      response.headers.set("Retry-After", "60");
-      return response;
     }
     return jsonResponse({ gemsCount: Number(result.gems_count) }, 200, origin);
   }

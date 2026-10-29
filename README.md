@@ -7,8 +7,8 @@ This Vite/React site is deployed as a static site on GitHub Pages. Shared editab
 - `src/services/siteContent.ts` loads the public site-content endpoint on startup and every 30 seconds. Bundled follower/video defaults remain visible while it loads; a failed request is shown in the UI rather than treated as a successful save.
 - The admin page signs in with Supabase Auth. Its session is used to authorize writes, but the Edge Function independently verifies the access token and checks the user's ID against the server-side `ADMIN_USER_IDS` allowlist.
 - `supabase/functions/site-content/index.ts` permits public `GET`, handles a narrowly scoped public `POST` to record support, and accepts authenticated, validated admin `PUT` writes. It uses `SUPABASE_SERVICE_ROLE_KEY` on the server to access the database. The service-role key must never be copied into frontend variables, GitHub configuration, browser storage, or checked-in files.
-- `supabase/migrations/20261029000000_create_site_content.sql` creates the singleton row for follower counts, featured videos, and the shared support count. `20261029000001_add_public_support_counter.sql` adds the atomic support increment and server-side per-IP rate limit. RLS is enabled and no `anon`/`authenticated` table policies or grants permit direct access.
-- The public football-support button increments the shared count through the Edge Function, limited to five accepted clicks per IP per minute. IP addresses are HMAC-hashed server-side for rate limiting; raw addresses are not stored.
+- `supabase/migrations/20261029000000_create_site_content.sql` creates the singleton row for follower counts, featured videos, and the shared support count. The later support-counter migrations add atomic increments and remove the former per-IP rate limit. RLS is enabled and no `anon`/`authenticated` table policies or grants permit direct access.
+- The public football-support button increments the shared count through the Edge Function without a per-visitor cooldown.
 
 ## Required Supabase setup
 
@@ -27,14 +27,14 @@ This Vite/React site is deployed as a static site on GitHub Pages. Shared editab
    Do not add a service-role key, admin password, or other private credential to GitHub Actions variables or secrets for this frontend build. The deploy workflow reads only those two public variables. Set `ALLOWED_ORIGINS` to the exact browser origin that serves GitHub Pages.
 7. Deploy the site using the `Deploy to GitHub Pages` workflow. Local development uses the same public settings from a local `.env` file based on `.env.example`.
 
-Visitors can increment the shared support count only through the dedicated, rate-limited function action; direct database writes remain blocked. Administrative count changes still require an allowlisted Supabase Auth user.
+Visitors can increment the shared support count only through the dedicated function action; direct database writes remain blocked. The public counter has no per-visitor rate limit, so repeated clicks are accepted. Administrative count changes still require an allowlisted Supabase Auth user.
 
 ## Verify the deployment
 
 1. Open the public site in one browser/session. Confirm follower counts and videos load, and check the browser console/network panel for successful `GET` requests to `/functions/v1/site-content`.
 2. Open `https://karim-gouida.github.io/oldbijou/#oldbijonumbers` in a separate browser/session and sign in with the Supabase Auth admin email/password. Save a follower count, edit/add/reorder a video, and test the reset action. A save is reported successful only after the Edge Function confirms persistence.
 3. Reload the public browser or wait up to 30 seconds. Verify the edits appear there, then reload the admin session and confirm they remain.
-4. Click the public football-support button and verify the shared count increases in a separate session. The sixth click from the same IP within the one-minute rate-limit window should return a clear message.
+4. Click the public football-support button repeatedly and verify each successful click increases the shared count in a separate session. The endpoint does not impose a per-IP cooldown.
 5. Confirm a signed-in non-admin user receives `403` on an admin write, and that direct REST access to `site_content` with only the publishable key is denied. Confirm no service-role key appears in downloaded assets, browser storage, or GitHub Actions variables.
 
 ## Local development
