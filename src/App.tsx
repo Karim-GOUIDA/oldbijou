@@ -242,7 +242,12 @@ export default function App() {
         />
 
         {/* Direct Contact & Fan Hype Section */}
-        <DirectContactSection lang={lang} platforms={platforms} gemsCount={siteContent.content.gemsCount} />
+        <DirectContactSection
+          lang={lang}
+          platforms={platforms}
+          gemsCount={siteContent.content.gemsCount}
+          onSendSupport={siteContent.sendSupport}
+        />
       </main>
 
       {/* Footer */}

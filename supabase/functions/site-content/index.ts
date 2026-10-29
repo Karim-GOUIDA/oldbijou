@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.118.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Headers": "apikey, authorization, content-type",
-  "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
   "Vary": "Origin",
 };
 
@@ -102,7 +102,7 @@ Deno.serve(async (request: Request) => {
       },
     });
   }
-  if (request.method !== "GET" && request.method !== "PUT") {
+  if (request.method !== "GET" && request.method !== "POST" && request.method !== "PUT") {
     return jsonResponse({ error: "Method not allowed." }, 405, origin);
   }
 
@@ -116,6 +116,42 @@ Deno.serve(async (request: Request) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  if (request.method === "POST") {
+    const clientAddress = request.headers.get("cf-connecting-ip") ??
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim();
+    if (!clientAddress) {
+      return jsonResponse({ error: "Unable to verify the visitor for support rate limiting." }, 400, origin);
+    }
+
+    const hmacKey = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(serviceRoleKey),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const signature = await crypto.subtle.sign("HMAC", hmacKey, new TextEncoder().encode(clientAddress));
+    const clientHash = Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    const { data, error } = await supabase.rpc("record_public_support", {
+      p_client_hash: clientHash,
+    });
+    if (error) {
+      console.error("Unable to record public support:", error.message);
+      return jsonResponse({ error: "Unable to record your support right now." }, 500, origin);
+    }
+    const result = Array.isArray(data) ? data[0] : data;
+    if (!result || typeof result.gems_count !== "number" || typeof result.rate_limited !== "boolean") {
+      console.error("Public support counter returned an invalid result.");
+      return jsonResponse({ error: "The support counter returned an invalid response." }, 500, origin);
+    }
+    if (result.rate_limited) {
+      const response = jsonResponse({ error: "Please wait a minute before sending more support." }, 429, origin);
+      response.headers.set("Retry-After", "60");
+      return response;
+    }
+    return jsonResponse({ gemsCount: Number(result.gems_count) }, 200, origin);
+  }
 
   if (request.method === "GET") {
     const { data, error } = await supabase

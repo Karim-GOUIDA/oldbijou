@@ -67,6 +67,25 @@ export async function fetchSharedSiteContent(): Promise<SharedSiteContent> {
   return parseResponse(response);
 }
 
+export async function recordPublicSupport(): Promise<number> {
+  const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const response = await fetch(endpointUrl(), {
+    method: "POST",
+    headers: {
+      apikey: publishableKey,
+      Authorization: `Bearer ${publishableKey}`,
+    },
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(typeof body?.error === "string" ? body.error : `Support request failed (${response.status}).`);
+  }
+  if (!Number.isSafeInteger(body?.gemsCount) || body.gemsCount < 0) {
+    throw new Error("The shared data service returned an invalid support count.");
+  }
+  return body.gemsCount;
+}
+
 export async function saveSharedSiteContent(
   patch: Partial<Pick<SharedSiteContent, "socialCounts" | "videos" | "gemsCount">>
 ): Promise<SharedSiteContent> {
@@ -118,6 +137,16 @@ export function useSiteContent() {
     return next;
   }, []);
 
+  const sendSupport = useCallback(async () => {
+    const requestId = ++contentRequestId.current;
+    const gemsCount = await recordPublicSupport();
+    if (requestId === contentRequestId.current) {
+      setContent((current) => ({ ...current, gemsCount }));
+      setLoadError(null);
+    }
+    return gemsCount;
+  }, []);
+
   useEffect(() => {
     void refresh();
     const interval = window.setInterval(() => void refresh(), 30000);
@@ -151,5 +180,5 @@ export function useSiteContent() {
     setSession(null);
   }, []);
 
-  return { content, loadError, isAuthenticated: Boolean(session), refresh, save, signIn, signOut };
+  return { content, loadError, isAuthenticated: Boolean(session), refresh, save, sendSupport, signIn, signOut };
 }

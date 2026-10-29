@@ -6,14 +6,14 @@ This Vite/React site is deployed as a static site on GitHub Pages. Shared editab
 
 - `src/services/siteContent.ts` loads the public site-content endpoint on startup and every 30 seconds. Bundled follower/video defaults remain visible while it loads; a failed request is shown in the UI rather than treated as a successful save.
 - The admin page signs in with Supabase Auth. Its session is used to authorize writes, but the Edge Function independently verifies the access token and checks the user's ID against the server-side `ADMIN_USER_IDS` allowlist.
-- `supabase/functions/site-content/index.ts` permits public `GET`, and accepts authenticated, validated `PUT` writes only. It uses `SUPABASE_SERVICE_ROLE_KEY` on the server to access the table. The service-role key must never be copied into frontend variables, GitHub configuration, browser storage, or checked-in files.
-- `supabase/migrations/20261029000000_create_site_content.sql` creates the singleton row for follower counts, featured videos, and the admin-managed gems count. RLS is enabled and no `anon`/`authenticated` table policies or grants permit direct access.
-- The public support button remains an animation only. Public visitors do not write to the shared data store.
+- `supabase/functions/site-content/index.ts` permits public `GET`, handles a narrowly scoped public `POST` to record support, and accepts authenticated, validated admin `PUT` writes. It uses `SUPABASE_SERVICE_ROLE_KEY` on the server to access the database. The service-role key must never be copied into frontend variables, GitHub configuration, browser storage, or checked-in files.
+- `supabase/migrations/20261029000000_create_site_content.sql` creates the singleton row for follower counts, featured videos, and the shared support count. `20261029000001_add_public_support_counter.sql` adds the atomic support increment and server-side per-IP rate limit. RLS is enabled and no `anon`/`authenticated` table policies or grants permit direct access.
+- The public football-support button increments the shared count through the Edge Function, limited to five accepted clicks per IP per minute. IP addresses are HMAC-hashed server-side for rate limiting; raw addresses are not stored.
 
 ## Required Supabase setup
 
 1. Create a Supabase project that belongs to this site. Do not reuse credentials from another project.
-2. Apply the migration in `supabase/migrations/20261029000000_create_site_content.sql` using the Supabase SQL Editor or Supabase CLI linked to this project. Verify that `public.site_content` contains its seeded singleton row.
+2. Apply both migrations in `supabase/migrations/` in filename order using the Supabase SQL Editor or Supabase CLI linked to this project. Verify that `public.site_content` contains its seeded singleton row.
 3. In Supabase Authentication, create an admin user with an email and a strong, unique password. Disable public sign-ups if they are not needed, and configure the site's production URL and local development callback URLs in the Auth URL configuration.
 4. Copy that user's Auth UUID from the Supabase dashboard. Configure these **Function secrets in Supabase**, not in this repository or GitHub:
    - `SUPABASE_URL`: this project's URL.
@@ -27,14 +27,15 @@ This Vite/React site is deployed as a static site on GitHub Pages. Shared editab
    Do not add a service-role key, admin password, or other private credential to GitHub Actions variables or secrets for this frontend build. The deploy workflow reads only those two public variables. Set `ALLOWED_ORIGINS` to the exact browser origin that serves GitHub Pages.
 7. Deploy the site using the `Deploy to GitHub Pages` workflow. Local development uses the same public settings from a local `.env` file based on `.env.example`.
 
-The support button now plays its local animation without incrementing shared data. The shared gems number is read-only to visitors and can only be changed by an allowlisted admin, so public sessions cannot write to the database.
+Visitors can increment the shared support count only through the dedicated, rate-limited function action; direct database writes remain blocked. Administrative count changes still require an allowlisted Supabase Auth user.
 
 ## Verify the deployment
 
 1. Open the public site in one browser/session. Confirm follower counts and videos load, and check the browser console/network panel for successful `GET` requests to `/functions/v1/site-content`.
 2. Open `https://karim-gouida.github.io/oldbijou/#oldbijonumbers` in a separate browser/session and sign in with the Supabase Auth admin email/password. Save a follower count, edit/add/reorder a video, and test the reset action. A save is reported successful only after the Edge Function confirms persistence.
 3. Reload the public browser or wait up to 30 seconds. Verify the edits appear there, then reload the admin session and confirm they remain.
-4. Confirm a signed-in non-admin user receives `403` on a write, and that direct REST access to `site_content` with only the publishable key is denied. Confirm no service-role key appears in downloaded assets, browser storage, or GitHub Actions variables.
+4. Click the public football-support button and verify the shared count increases in a separate session. The sixth click from the same IP within the one-minute rate-limit window should return a clear message.
+5. Confirm a signed-in non-admin user receives `403` on an admin write, and that direct REST access to `site_content` with only the publishable key is denied. Confirm no service-role key appears in downloaded assets, browser storage, or GitHub Actions variables.
 
 ## Local development
 

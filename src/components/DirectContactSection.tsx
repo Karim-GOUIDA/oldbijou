@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flame, Sparkles, Copy, Check, Send, Mail, Gem, Trophy, Globe2 } from 'lucide-react';
+import { Sparkles, Copy, Check, Send, Mail, Trophy } from 'lucide-react';
 import { YoutubeIcon, TikTokIcon, InstagramIcon, FacebookIcon } from './BrandIcons';
 import { INFLUENCER_PROFILE, Language, SocialPlatform } from '../data/influencerData';
 import { formatFollowerCount } from '../services/statsSync';
@@ -8,11 +8,19 @@ interface DirectContactSectionProps {
   lang: Language;
   platforms?: SocialPlatform[];
   gemsCount: number;
+  onSendSupport: () => Promise<number>;
 }
 
-export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang, platforms = [], gemsCount }) => {
+export const DirectContactSection: React.FC<DirectContactSectionProps> = ({
+  lang,
+  platforms = [],
+  gemsCount,
+  onSendSupport,
+}) => {
   const [bursts, setBursts] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [isSendingSupport, setIsSendingSupport] = useState(false);
+  const [supportError, setSupportError] = useState<string | null>(null);
   const isAr = lang === 'ar';
 
   const yt = platforms.find((p) => p.id === 'youtube');
@@ -25,12 +33,27 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
   const fbText = formatFollowerCount(fb?.followersRaw ?? 35200);
   const ttText = formatFollowerCount(tt?.followersRaw ?? 28400);
 
-  const emojis = ['💎', '⚽', '🏆', '🔥', '👑', '⚡'];
+  const emojis = ['⚽', '🏆', '🔥', '👏', '💚', '⚡'];
 
-  const handleHype = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSupportClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isSendingSupport) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left + (Math.random() * 40 - 20);
     const y = e.clientY - rect.top - 20;
+    setIsSendingSupport(true);
+    setSupportError(null);
+    try {
+      await onSendSupport();
+    } catch (error) {
+      setSupportError(
+        error instanceof Error
+          ? error.message
+          : (isAr ? 'تعذر إرسال الدعم. حاول مرة أخرى.' : 'Impossible d’envoyer le soutien. Réessayez.')
+      );
+      setIsSendingSupport(false);
+      return;
+    }
+
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
 
     const newBurst = {
@@ -45,7 +68,7 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
     setTimeout(() => {
       setBursts((prev) => prev.filter((b) => b.id !== newBurst.id));
     }, 1200);
-
+    setIsSendingSupport(false);
   };
 
   const handleCopyEmail = () => {
@@ -177,51 +200,54 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
             </div>
           </div>
 
-          {/* Interactive Hype Button Column (Jewels & Support) */}
-          <div id="hype" className="lg:col-span-5 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#121624] via-[#0d101b] to-[#08090E] border border-amber-500/30 shadow-2xl relative scroll-mt-28">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 bg-clip-text text-transparent font-mono mb-3">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span>{isAr ? 'دعم الجمهور وجواهر التشجيع' : 'Force & Soutien communautaire'}</span>
+          {/* Interactive football support */}
+          <div id="hype" className="lg:col-span-5 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#08251b] via-[#0d1715] to-[#08090E] border border-emerald-500/35 shadow-2xl relative scroll-mt-28">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-300 font-mono mb-3">
+              <Trophy className="w-4 h-4 text-emerald-400" />
+              <span>{isAr ? 'تشجيع الجمهور' : 'Encouragement des supporters'}</span>
             </div>
 
             <h3 className="font-display text-2xl sm:text-3xl font-black text-white mb-3">
-              {isAr ? 'أرسل جواهر الدعم لـ OLDBIJOU 💎' : 'Envoyez des joyaux à OLDBIJOU 💎'}
+              {isAr ? 'شجّع OLDBIJOU ⚽' : 'Encouragez OLDBIJOU ⚽'}
             </h3>
             <p className="text-zinc-300 text-sm leading-relaxed mb-6">
               {isAr
-                ? 'اضغط لإرسال الدعم والشغف الكروي إلى OLDBIJOU!'
-                : 'Cliquez pour envoyer votre énergie footballistique à OLDBIJOU !'}
+                ? 'أرسل تشجيعك الكروي وساهم في عدّاد دعم الجمهور!'
+                : 'Envoyez votre encouragement football et faites monter le compteur des supporters !'}
             </p>
 
-            <div className="mb-6 p-4 rounded-2xl bg-[#090b12] border border-amber-500/20 flex items-center justify-between">
+            <div className="mb-6 p-4 rounded-2xl bg-[#090f0d] border border-emerald-500/25 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 text-xs uppercase font-bold text-zinc-400 mb-1">
-                  <span>{isAr ? 'إجمالي جواهر الدعم' : 'Total des joyaux de soutien'}</span>
+                  <span>{isAr ? 'إجمالي تشجيعات الجمهور' : 'Total des encouragements'}</span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    {isAr ? 'أونلاين مباشر' : 'En ligne direct'}
+                    {isAr ? 'مباشر' : 'En direct'}
                   </span>
                 </div>
-                <div className="font-display text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-400 bg-clip-text text-transparent font-mono tabular-nums">
+                <div className="font-display text-3xl sm:text-4xl font-black bg-gradient-to-r from-emerald-200 via-green-300 to-lime-300 bg-clip-text text-transparent font-mono tabular-nums">
                   {gemsCount.toLocaleString()}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping" />
+                <span className="text-3xl" aria-hidden="true">⚽</span>
               </div>
             </div>
 
-            {/* Tap to Send Hype Button */}
             <div className="relative">
               <button
-                onClick={handleHype}
-                className="w-full py-5 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-zinc-950 font-black text-base sm:text-lg rounded-2xl transition-all shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer select-none"
+                onClick={handleSupportClick}
+                disabled={isSendingSupport}
+                className="w-full py-5 bg-gradient-to-r from-emerald-500 via-green-400 to-lime-400 hover:from-emerald-400 hover:to-lime-300 disabled:opacity-70 disabled:cursor-wait text-zinc-950 font-black text-base sm:text-lg rounded-2xl transition-all shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer select-none"
               >
-                <Gem className="w-6 h-6 text-zinc-950 fill-current animate-bounce" />
-                <span>{isAr ? 'أرسل جوهرة دعم كروي 💎' : 'Envoyer un bijou de soutien 💎'}</span>
+                <span className="text-2xl" aria-hidden="true">⚽</span>
+                <span>
+                  {isSendingSupport
+                    ? (isAr ? 'جارٍ إرسال التشجيع...' : 'Envoi en cours...')
+                    : (isAr ? 'أرسل تشجيعًا كرويًا' : 'Envoyer un soutien football')}
+                </span>
               </button>
 
-              {/* Floating Emojis */}
               {bursts.map((burst) => (
                 <span
                   key={burst.id}
@@ -235,6 +261,11 @@ export const DirectContactSection: React.FC<DirectContactSectionProps> = ({ lang
                 </span>
               ))}
             </div>
+            {supportError && (
+              <p role="alert" className="mt-3 text-sm text-red-300">
+                {supportError}
+              </p>
+            )}
           </div>
         </div>
       </div>

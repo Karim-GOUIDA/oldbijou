@@ -22,11 +22,6 @@ import {
   Clock,
   Film,
   X,
-  PlusCircle,
-  MinusCircle,
-  TrendingUp,
-  Zap,
-  Layers,
   Globe
 } from 'lucide-react';
 import { SocialPlatform, Language, RealVideo } from '../data/influencerData';
@@ -261,22 +256,6 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
       const next = Math.max(0, currentTt + delta);
       setTtCount(next.toString());
     }
-  };
-
-  // Master Control: adjust all 4 input numbers simultaneously
-  const adjustAll = (delta: number) => {
-    setYtCount(Math.max(0, currentYt + delta).toString());
-    setIgCount(Math.max(0, currentIg + delta).toString());
-    setFbCount(Math.max(0, currentFb + delta).toString());
-    setTtCount(Math.max(0, currentTt + delta).toString());
-  };
-
-  // Master Control: Apply a preset bundle to all numbers
-  const applyPresetBundle = (bundle: { yt: number; ig: number; fb: number; tt: number }) => {
-    setYtCount(bundle.yt.toString());
-    setIgCount(bundle.ig.toString());
-    setFbCount(bundle.fb.toString());
-    setTtCount(bundle.tt.toString());
   };
 
   // Clear single platform number
@@ -666,8 +645,8 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                 </h2>
                 <p className="text-zinc-300 text-xs sm:text-sm mt-1 max-w-2xl">
                   {isAr
-                    ? 'تم توفير أزرار تحكم كاملة (+ / - وسريعة) لكل رقم على حدة، بالإضافة إلى لوحة تحكم جماعية لكافة الأرقام أدناه.'
-                    : 'Commandes complètes d\'ajustement (+ / - et pas rapides) pour chaque entrée, et contrôle global ci-dessous.'}
+                    ? 'تحكم في أرقام كل منصة على حدة واحفظ التغييرات لتظهر لجميع الزوار.'
+                    : 'Modifiez chaque chiffre individuellement et enregistrez pour appliquer les changements à tous les visiteurs.'}
                 </p>
               </div>
 
@@ -687,137 +666,6 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-
-            {/* MASTER CONTROL BAR FOR ALL INPUT NUMBERS */}
-            <div className="p-6 rounded-3xl bg-[#0d101a] border-2 border-amber-500/40 shadow-2xl mb-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-neutral-800">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-                    <Layers className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-black text-white text-base">
-                      {isAr ? 'لوحة التحكم الجماعي في جميع الأرقام (Master Number Controls)' : 'Contrôle Global de Tous les Chiffres'}
-                    </h3>
-                    <p className="text-[11px] text-zinc-400 font-mono">
-                      {isAr ? 'تحكم في أرقام المنصات الأربعة معاً دفعة واحدة بنقرة واحدة' : 'Ajustez les 4 chiffres simultanément'}
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-xs font-mono text-amber-400/90 font-bold bg-amber-950/40 px-3 py-1 rounded-lg border border-amber-500/30">
-                  {isAr ? 'تحكم شامل' : 'Contrôle Master'}
-                </span>
-              </div>
-
-              {/* Master Control Buttons */}
-              <div className="space-y-4">
-                {/* 1. Global Steppers */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="text-xs font-bold text-zinc-400 font-mono w-full sm:w-auto">
-                    {isAr ? 'زيادة الكل بـ:' : 'Ajouter à tous :'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(1000)}
-                    className="px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-amber-400/50 text-white font-mono font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>+1,000 (+1K)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(10000)}
-                    className="px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-amber-400/50 text-white font-mono font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>+10,000 (+10K)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(100000)}
-                    className="px-3.5 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-amber-400/50 text-white font-mono font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>+100,000 (+100K)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(1000000)}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-mono font-black text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span>+1,000,000 (+1M)</span>
-                  </button>
-
-                  <div className="hidden sm:block h-5 w-[1px] bg-neutral-800 mx-1" />
-
-                  <span className="text-xs font-bold text-zinc-400 font-mono w-full sm:w-auto">
-                    {isAr ? 'إنقاص الكل:' : 'Diminuer :'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(-1000)}
-                    className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-zinc-300 hover:text-white font-mono font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <MinusCircle className="w-3.5 h-3.5 text-red-400" />
-                    <span>-1K</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(-10000)}
-                    className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-zinc-300 hover:text-white font-mono font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <MinusCircle className="w-3.5 h-3.5 text-red-400" />
-                    <span>-10K</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustAll(-100000)}
-                    className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-zinc-300 hover:text-white font-mono font-bold text-xs transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <MinusCircle className="w-3.5 h-3.5 text-red-400" />
-                    <span>-100K</span>
-                  </button>
-                </div>
-
-                {/* 2. Quick Bundle Presets */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-neutral-800/80">
-                  <span className="text-xs font-bold text-zinc-400 font-mono">
-                    {isAr ? 'حزم سريعة جاهزة للكل:' : 'Préréglages globaux :'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      applyPresetBundle({ yt: 7690, ig: 48500, fb: 35200, tt: 28400 })
-                    }
-                    className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-amber-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-amber-400/50 cursor-pointer"
-                  >
-                    ⚽ {isAr ? 'الأرقام الأصلية' : 'Chiffres originaux'} (7.69K / 48.5K / 35.2K / 28.4K)
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      applyPresetBundle({ yt: 1250000, ig: 4850000, fb: 2350000, tt: 1900000 })
-                    }
-                    className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-emerald-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-emerald-400/50 cursor-pointer"
-                  >
-                    🚀 {isAr ? 'حزمة الملايين' : 'Millions'} (1.25M / 4.85M / 2.35M / 1.9M)
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      applyPresetBundle({ yt: 100000000000, ig: 4850000, fb: 352000000, tt: 28400000 })
-                    }
-                    className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-purple-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-purple-400/50 cursor-pointer"
-                  >
-                    💎 100B / 4.85M / 352M / 28.4M
-                  </button>
-                </div>
               </div>
             </div>
 
