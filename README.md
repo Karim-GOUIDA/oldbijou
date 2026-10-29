@@ -29,6 +29,14 @@ This Vite/React site is deployed as a static site on GitHub Pages. Shared editab
 
 Visitors can increment the shared support count only through the dedicated function action; direct database writes remain blocked. The public counter has no per-visitor rate limit, so repeated clicks are accepted. Administrative count changes still require an allowlisted Supabase Auth user.
 
+## SEO and production domain
+
+- The public site is one Arabic/French React page with in-page sections; `/oldbijonumbers` is the private admin view, not a public landing page. The admin view sets `noindex, nofollow`; it is excluded from `public/sitemap.xml`.
+- The site uses `https://oldbijou.fyi/` as its canonical URL. `public/robots.txt`, `public/sitemap.xml`, and `public/CNAME` are copied into the GitHub Pages build.
+- GitHub Pages was still configured for `https://karim-gouida.github.io/oldbijou/` when this domain was added, and `oldbijou.fyi` did not resolve in DNS. Before relying on the canonical URL, configure the domain's DNS to GitHub Pages, enter `oldbijou.fyi` in **Repository Settings → Pages → Custom domain**, wait for DNS verification, and enable HTTPS. For an apex domain, GitHub Pages currently documents A records `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, and `185.199.111.153`; optionally point `www` to `karim-gouida.github.io` with a CNAME and verify the current records in GitHub's custom-domain documentation.
+- The HTML shell contains the title, description, canonical, social metadata, and Person/WebSite JSON-LD. Page content itself is rendered by React, so search engines must execute JavaScript to see the sections and shared video data. Google can render JavaScript, but a future prerendered static page could improve reliability; that would require changing the build/output strategy and should be planned separately rather than introducing server rendering on GitHub Pages.
+- Submit `https://oldbijou.fyi/sitemap.xml` in Google Search Console after the domain resolves and HTTPS works. The single public page is Arabic-first with a French language toggle, not separate crawlable language URLs.
+
 ## Verify the deployment
 
 1. Open the public site in one browser/session. Confirm follower counts and videos load, and check the browser console/network panel for successful `GET` requests to `/functions/v1/site-content`.

@@ -60,10 +60,10 @@ export const Footer: React.FC<FooterProps> = ({ lang, platforms = [], onNavigate
           </div>
 
           {/* Quick links */}
-          <div className="md:col-span-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-4 font-mono">
+          <nav aria-label={isAr ? 'روابط الموقع' : 'Navigation du site'} className="md:col-span-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-4 font-mono">
               {isAr ? 'روابط الموقع' : 'Navigation'}
-            </span>
+            </h2>
             <ul className="space-y-2.5 text-xs sm:text-sm font-semibold">
               <li>
                 <a href="#platforms" className="hover:text-amber-300 transition-colors">
@@ -92,13 +92,13 @@ export const Footer: React.FC<FooterProps> = ({ lang, platforms = [], onNavigate
                 </li>
               )}
             </ul>
-          </div>
+          </nav>
 
           {/* Direct Email & Official Info */}
-          <div className="md:col-span-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-4 font-mono">
+          <section aria-labelledby="footer-contact-heading" className="md:col-span-3">
+            <h2 id="footer-contact-heading" className="text-xs font-bold uppercase tracking-wider text-amber-300 block mb-4 font-mono">
               {isAr ? 'معلومات التواصل المعتمدة' : 'Contact officiel'}
-            </span>
+            </h2>
             <div className="space-y-3 text-xs sm:text-sm">
               <div>
                 <span className="text-zinc-500 block text-xs">
@@ -141,7 +141,7 @@ export const Footer: React.FC<FooterProps> = ({ lang, platforms = [], onNavigate
                 </a>
               </div>
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Quiet copyright */}

@@ -33,9 +33,6 @@ interface NumbersAdminPageProps {
   lang: Language;
   onToggleLang?: () => void;
   platforms: SocialPlatform[];
-  isSyncing: boolean;
-  syncSource: string;
-  onRefresh: () => void;
   onUpdateMultipleCounts: (counts: {
     youtube?: number;
     instagram?: number;
@@ -81,9 +78,6 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   lang,
   onToggleLang,
   platforms,
-  isSyncing,
-  syncSource,
-  onRefresh,
   onUpdateMultipleCounts,
   onResetDefaults,
   onNavigateHome,
@@ -1443,7 +1437,11 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                         <>
                           <img
                             src={`https://i.ytimg.com/vi/${extractedNewYtId}/hqdefault.jpg`}
-                            alt="Preview"
+                            alt={isAr ? 'معاينة الصورة المصغرة للفيديو' : 'Aperçu de la miniature vidéo'}
+                            width={480}
+                            height={360}
+                            loading="lazy"
+                            decoding="async"
                             onError={(e) => {
                               e.currentTarget.src = `https://i.ytimg.com/vi/${extractedNewYtId}/mqdefault.jpg`;
                             }}
@@ -1521,7 +1519,11 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                           >
                             <img
                               src={video.thumbnail}
-                              alt={video.titleAr}
+                              alt={isAr ? video.titleAr : (video.titleFr || video.titleAr)}
+                              width={480}
+                              height={360}
+                              loading="lazy"
+                              decoding="async"
                               onError={(e) => {
                                 if (video.fallbackThumbnail) e.currentTarget.src = video.fallbackThumbnail;
                               }}

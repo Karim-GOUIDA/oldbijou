@@ -31,7 +31,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 overflow-hidden">
         <img
           src={INFLUENCER_PROFILE.stadiumBg}
-          alt="Stadium Atmosphere"
+          alt=""
+          aria-hidden="true"
+          width={1376}
+          height={768}
           className="w-full h-full object-cover object-center filter saturate-50"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#08090E] via-[#08090E]/80 to-[#08090E]/95" />
@@ -55,7 +58,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="flex items-center gap-3 sm:gap-4 mb-5">
               <img
                 src={INFLUENCER_PROFILE.avatar}
-                alt="OLDBIJOU"
+                alt={isAr ? 'صورة صانع المحتوى الكروي OLDBIJOU' : 'Portrait of OLDBIJOU, football content creator'}
+                width={1080}
+                height={1080}
                 className="w-14 h-14 rounded-2xl object-cover border-2 border-amber-500/50 shadow-lg md:hidden shrink-0"
               />
               <h1 className="font-display text-4xl sm:text-5xl md:text-5xl lg:text-[4.4rem] font-black tracking-tight text-white leading-[1.05] [text-wrap:balance]">
@@ -162,7 +167,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <div className="relative aspect-square rounded-3xl overflow-hidden border-2 border-amber-500/40 shadow-2xl bg-zinc-950 group">
                 <img
                   src={INFLUENCER_PROFILE.avatar}
-                  alt="OLDBIJOU"
+                  alt={isAr ? 'صورة صانع المحتوى الكروي OLDBIJOU' : 'Portrait of OLDBIJOU, football content creator'}
+                  width={1080}
+                  height={1080}
+                  fetchPriority="high"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-out"
                 />

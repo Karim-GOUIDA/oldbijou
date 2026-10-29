@@ -61,9 +61,10 @@ export const SocialPlatformsGrid: React.FC<SocialPlatformsGridProps> = ({
             const isHighlighted = selectedPlatformId === platform.id;
 
             return (
-              <div
+              <article
                 key={platform.id}
                 id={`platform-card-${platform.id}`}
+                aria-labelledby={`platform-heading-${platform.id}`}
                 className={`group relative rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-[#111420]/95 to-[#0b0d15]/95 border transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-amber-950/40 ${
                   isHighlighted
                     ? 'border-amber-400 ring-2 ring-amber-400/40 shadow-[0_0_30px_rgba(245,158,11,0.25)]'
@@ -89,7 +90,7 @@ export const SocialPlatformsGrid: React.FC<SocialPlatformsGridProps> = ({
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-display text-lg font-black text-white group-hover:text-amber-300 transition-colors">
+                          <h3 id={`platform-heading-${platform.id}`} className="font-display text-lg font-black text-white group-hover:text-amber-300 transition-colors">
                             {isAr ? platform.name : platform.nameFr}
                           </h3>
                           <ShieldCheck className="w-4 h-4 text-emerald-400" />
@@ -174,7 +175,7 @@ export const SocialPlatformsGrid: React.FC<SocialPlatformsGridProps> = ({
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>

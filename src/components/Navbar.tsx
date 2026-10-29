@@ -33,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
+      id="top"
       className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled
           ? 'bg-[#08090E]/95 backdrop-blur-xl border-b border-amber-500/20 shadow-2xl shadow-black/80 py-3.5'
@@ -42,7 +43,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sm:gap-6">
         {/* Brand: OLDBIJOU */}
         <a
-          href="#"
+          href="#top"
+          aria-label="OLDBIJOU — Accueil"
           className="flex items-center gap-2.5 group whitespace-nowrap shrink-0 focus:outline-none"
         >
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 flex items-center justify-center text-zinc-950 shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">

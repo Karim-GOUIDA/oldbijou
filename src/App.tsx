@@ -15,7 +15,7 @@ import { QuickDock } from './components/QuickDock';
 import { Footer } from './components/Footer';
 import { NumbersAdminPage } from './pages/NumbersAdminPage';
 import { Language, REAL_YOUTUBE_VIDEOS, RealVideo, SOCIAL_PLATFORMS } from './data/influencerData';
-import { useLiveStats } from './services/statsSync';
+import { useSocialPlatforms } from './services/statsSync';
 import { buildVideoObject } from './services/videoManager';
 import { useSiteContent } from './services/siteContent';
 import { Check } from 'lucide-react';
@@ -28,6 +28,17 @@ function isOldbijouAdminPath(): boolean {
     hash === 'oldbijonumbers' || hash === 'oldbijounumbers';
 }
 
+const PAGE_METADATA = {
+  ar: {
+    title: 'OLDBIJOU | قصص وتحليلات كرة القدم',
+    description: 'المنصة الرسمية لصانع المحتوى الكروي OLDBIJOU: قصص كرة القدم وتحليلات ومقاطع YouTube وروابط حساباته الرسمية.',
+  },
+  fr: {
+    title: 'OLDBIJOU | Histoires et analyses de football',
+    description: 'Site officiel d’OLDBIJOU, créateur de contenu football : récits autour du football, analyses et vidéos YouTube, avec accès à ses réseaux officiels.',
+  },
+} satisfies Record<Language, { title: string; description: string }>;
+
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
   const [isQrOpen, setIsQrOpen] = useState(false);
@@ -36,7 +47,7 @@ export default function App() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const siteContent = useSiteContent();
-  const { platforms, isSyncing, syncSource, refreshNow } = useLiveStats(siteContent.content.socialCounts);
+  const platforms = useSocialPlatforms(siteContent.content.socialCounts);
   const videos = siteContent.content.videos;
 
   const updateCounts = (counts: Record<string, number>) =>
@@ -105,6 +116,27 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const pageMetadata = PAGE_METADATA[lang];
+    const title = isAdminView ? 'OLDBIJOU Admin | Gestion du contenu' : pageMetadata.title;
+    const description = isAdminView
+      ? 'Private OLDBIJOU administration page.'
+      : pageMetadata.description;
+    document.title = title;
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+    const setMetaContent = (selector: string, content: string) => {
+      document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', content);
+    };
+    setMetaContent('meta[name="description"]', description);
+    setMetaContent('meta[name="robots"]', isAdminView ? 'noindex, nofollow' : 'index, follow');
+    setMetaContent('meta[property="og:title"]', title);
+    setMetaContent('meta[property="og:description"]', description);
+    setMetaContent('meta[name="twitter:title"]', title);
+    setMetaContent('meta[name="twitter:description"]', description);
+  }, [isAdminView, lang]);
+
   const navigateToHome = () => {
     try {
       const path = window.location.pathname;
@@ -150,12 +182,6 @@ export default function App() {
         lang={lang}
         onToggleLang={toggleLang}
         platforms={platforms}
-        isSyncing={isSyncing}
-        syncSource={syncSource}
-        onRefresh={async () => {
-          await siteContent.refresh();
-          await refreshNow();
-        }}
         onUpdateMultipleCounts={updateCounts}
         onResetDefaults={resetCounts}
         onNavigateHome={navigateToHome}

@@ -103,32 +103,40 @@ export const RealVideosSection: React.FC<RealVideosSectionProps> = ({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {videos.map((video, idx) => (
-              <div
+              <article
                 key={video.id}
-                onClick={() => setActiveVideo(video)}
-                className="group relative rounded-3xl overflow-hidden border border-neutral-800 bg-[#0e111a] cursor-pointer shadow-xl hover:border-amber-400/50 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] transition-all flex flex-col justify-between"
+                className="group relative rounded-3xl overflow-hidden border border-neutral-800 bg-[#0e111a] shadow-xl hover:border-amber-400/50 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] transition-all flex flex-col justify-between"
               >
                 {/* Thumbnail Container */}
                 <div className="relative aspect-video overflow-hidden bg-black">
-                  <img
-                    src={video.thumbnail}
-                    alt={isAr ? video.titleAr : (video.titleFr || video.titleAr)}
-                    onError={(e) => {
-                      if (video.fallbackThumbnail && e.currentTarget.src !== video.fallbackThumbnail) {
-                        e.currentTarget.src = video.fallbackThumbnail;
-                      }
-                    }}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0e111a] via-black/30 to-transparent" />
-
-                  {/* Big Center Play Icon */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-zinc-950 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                      <Play className="w-6 h-6 ml-0.5 fill-current" />
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveVideo(video)}
+                    aria-label={isAr ? `مشاهدة الفيديو: ${video.titleAr}` : `Regarder la vidéo : ${video.titleFr || video.titleAr}`}
+                    className="absolute inset-0 z-10 w-full cursor-pointer"
+                  >
+                    <img
+                      src={video.thumbnail}
+                      alt=""
+                      width={480}
+                      height={360}
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        if (video.fallbackThumbnail && e.currentTarget.src !== video.fallbackThumbnail) {
+                          e.currentTarget.src = video.fallbackThumbnail;
+                        }
+                      }}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0e111a] via-black/30 to-transparent" />
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-zinc-950 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                        <Play className="w-6 h-6 ml-0.5 fill-current" />
+                      </span>
+                    </span>
+                  </button>
 
                   {/* Top Badge */}
                   <div className="absolute top-3 right-3 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[11px] font-bold text-amber-300 border border-amber-500/30 font-mono">
@@ -190,7 +198,7 @@ export const RealVideosSection: React.FC<RealVideosSectionProps> = ({
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}

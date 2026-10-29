@@ -1,6 +1,6 @@
 {
-  "name": "MEHDI PITA — Official Hub & Social Media",
-  "description": "المنصة الرسمية لصانع المحتوى Khalil (OLDBIJOU) — ستوريات بطابع خاص، حكايات كروية بأسلوب مختلف، تحليل بالمقلوب وضحك بلا حدود.",
+  "name": "OLDBIJOU — Official Football Creator Hub",
+  "description": "المنصة الرسمية لصانع المحتوى الكروي OLDBIJOU: قصص كرة القدم وتحليلات ومقاطع YouTube وروابط حساباته الرسمية.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
