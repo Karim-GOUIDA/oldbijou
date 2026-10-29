@@ -132,24 +132,17 @@ export const SocialPlatformsGrid: React.FC<SocialPlatformsGridProps> = ({
                         <span>{isAr ? platform.followersLabelAr : platform.followersLabelFr}</span>
                       </div>
 
-                      {platform.id === 'youtube' ? (
-                        <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 font-bold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          {isAr ? 'Live API متصل' : 'API connecté'}
-                        </span>
-                      ) : (
-                        onOpenStats && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenStats();
-                            }}
-                            className="text-[10px] text-amber-300 hover:text-white font-mono hover:underline cursor-pointer"
-                          >
-                            {isAr ? 'تعديل ✏️' : 'Modifier ✏️'}
-                          </button>
-                        )
+                      {onOpenStats && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenStats();
+                          }}
+                          className="text-[10px] text-amber-300 hover:text-white font-mono hover:underline cursor-pointer"
+                        >
+                          {isAr ? 'تعديل ✏️' : 'Modifier ✏️'}
+                        </button>
                       )}
                     </div>
                   </div>
