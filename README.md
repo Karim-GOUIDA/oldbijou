@@ -32,7 +32,7 @@ The support button now plays its local animation without incrementing shared dat
 ## Verify the deployment
 
 1. Open the public site in one browser/session. Confirm follower counts and videos load, and check the browser console/network panel for successful `GET` requests to `/functions/v1/site-content`.
-2. Open `/oldbijonumbers` in a separate browser/session and sign in with the Supabase Auth admin email/password. Save a follower count, edit/add/reorder a video, and test the reset action. A save is reported successful only after the Edge Function confirms persistence.
+2. Open `https://karim-gouida.github.io/oldbijou/#oldbijonumbers` in a separate browser/session and sign in with the Supabase Auth admin email/password. Save a follower count, edit/add/reorder a video, and test the reset action. A save is reported successful only after the Edge Function confirms persistence.
 3. Reload the public browser or wait up to 30 seconds. Verify the edits appear there, then reload the admin session and confirm they remain.
 4. Confirm a signed-in non-admin user receives `403` on a write, and that direct REST access to `site_content` with only the publishable key is denied. Confirm no service-role key appears in downloaded assets, browser storage, or GitHub Actions variables.
 
@@ -42,5 +42,5 @@ Prerequisites: Node.js 22+
 
 1. Install dependencies with `npm ci`.
 2. Copy `.env.example` to `.env.local` and set the public Supabase URL and publishable key for this project. Add `http://localhost:3000` to the Function's `ALLOWED_ORIGINS` secret.
-3. Run `npm run dev`, then use `http://localhost:3000`.
+3. Run `npm run dev`, then use `http://localhost:3000/#oldbijonumbers` to open the admin page.
 4. Run `npm run lint` and `npm run build` to validate the app.

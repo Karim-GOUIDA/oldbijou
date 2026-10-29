@@ -23,8 +23,9 @@ import { Check } from 'lucide-react';
 function isOldbijouAdminPath(): boolean {
   if (typeof window === 'undefined') return false;
   const p = window.location.pathname.toLowerCase().replace(/\/+$/, '');
-  // STRICT: Only enter admin if the pathname is explicitly /oldbijonumbers
-  return p === '/oldbijonumbers' || p === '/oldbijounumbers';
+  const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '').replace(/\/+$/, '');
+  return p.endsWith('/oldbijonumbers') || p.endsWith('/oldbijounumbers') ||
+    hash === 'oldbijonumbers' || hash === 'oldbijounumbers';
 }
 
 export default function App() {
@@ -93,27 +94,27 @@ export default function App() {
   };
 
   useEffect(() => {
-    // If there was any legacy hash from previous turns, clean it up so home page remains clean
-    if (window.location.hash.toLowerCase().includes('oldbijonumbers')) {
-      try {
-        window.history.replaceState(null, '', window.location.pathname || '/');
-      } catch {
-        // ignore
-      }
-    }
-
     const handleLocationChange = () => {
       setIsAdminView(isOldbijouAdminPath());
     };
     window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
 
   const navigateToHome = () => {
     try {
-      window.history.pushState({}, '', '/');
+      const path = window.location.pathname;
+      const normalizedPath = path.toLowerCase().replace(/\/+$/, '');
+      const suffix = ['/oldbijonumbers', '/oldbijounumbers']
+        .find((route) => normalizedPath.endsWith(route));
+      const homePath = suffix
+        ? `${path.replace(/\/+$/, '').slice(0, -suffix.length) || ''}/`
+        : path;
+      window.history.pushState({}, '', `${homePath}${window.location.search}`);
     } catch {
       // fallback
     }
