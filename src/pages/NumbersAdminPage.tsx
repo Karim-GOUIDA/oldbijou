@@ -46,8 +46,8 @@ interface NumbersAdminPageProps {
     instagram?: number;
     facebook?: number;
     tiktok?: number;
-  }) => void;
-  onResetDefaults: () => void;
+  }) => Promise<unknown>;
+  onResetDefaults: () => Promise<unknown>;
   onNavigateHome: () => void;
   videos: RealVideo[];
   onAddVideo: (data: {
@@ -57,7 +57,7 @@ interface NumbersAdminPageProps {
     tagAr?: string;
     tagFr?: string;
     duration?: string;
-  }) => boolean;
+  }) => Promise<boolean>;
   onUpdateVideo: (
     id: string,
     data: {
@@ -68,13 +68,19 @@ interface NumbersAdminPageProps {
       tagFr?: string;
       duration?: string;
     }
-  ) => boolean;
-  onDeleteVideo: (id: string) => void;
-  onResetVideos: () => void;
-  onMoveVideo: (idx: number, direction: 'up' | 'down') => void;
+  ) => Promise<void>;
+  onDeleteVideo: (id: string) => Promise<unknown>;
+  onResetVideos: () => Promise<unknown>;
+  onMoveVideo: (idx: number, direction: 'up' | 'down') => Promise<void>;
+  onlineGems: number;
+  onSaveGems: (count: number) => Promise<unknown>;
+  onResetGems: () => Promise<unknown>;
+  isAuthenticated: boolean;
+  onLogin: (email: string, password: string) => Promise<void>;
+  onLogout: () => Promise<void>;
+  contentError: string | null;
+  onRefreshContent: () => Promise<void>;
 }
-
-const AUTH_STORAGE_KEY = 'oldbijou_admin_authenticated_session';
 
 export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   lang,
@@ -91,7 +97,15 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   onUpdateVideo,
   onDeleteVideo,
   onResetVideos,
-  onMoveVideo
+  onMoveVideo,
+  onlineGems,
+  onSaveGems,
+  onResetGems,
+  isAuthenticated,
+  onLogin,
+  onLogout,
+  contentError,
+  onRefreshContent
 }) => {
   const [adminLang, setAdminLang] = useState<Language>(() => {
     try {
@@ -127,18 +141,10 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   // Navigation tab inside Admin: 'numbers' | 'videos'
   const [activeTab, setActiveTab] = useState<'numbers' | 'videos'>('numbers');
 
-  // Authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    try {
-      return sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const [usernameInput, setUsernameInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const [operationError, setOperationError] = useState<string | null>(null);
 
   // Values for the 4 platforms
   const yt = platforms.find((p) => p.id === 'youtube');
@@ -172,97 +178,58 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
 
   // Sync inputs if platforms change from external sync
   useEffect(() => {
-    if (yt?.followersRaw) setYtCount(yt.followersRaw.toString());
-    if (ig?.followersRaw) setIgCount(ig.followersRaw.toString());
-    if (fb?.followersRaw) setFbCount(fb.followersRaw.toString());
-    if (tt?.followersRaw) setTtCount(tt.followersRaw.toString());
+    if (typeof yt?.followersRaw === 'number') setYtCount(yt.followersRaw.toString());
+    if (typeof ig?.followersRaw === 'number') setIgCount(ig.followersRaw.toString());
+    if (typeof fb?.followersRaw === 'number') setFbCount(fb.followersRaw.toString());
+    if (typeof tt?.followersRaw === 'number') setTtCount(tt.followersRaw.toString());
   }, [yt?.followersRaw, ig?.followersRaw, fb?.followersRaw, tt?.followersRaw]);
 
-  // Online Gems Management
-  const [onlineGems, setOnlineGems] = useState<number>(0);
   const [gemsInputVal, setGemsInputVal] = useState<string>('0');
 
   useEffect(() => {
-    const fetchGems = async () => {
-      try {
-        const res = await fetch('/api/gems');
-        if (res.ok) {
-          const d = await res.json();
-          if (typeof d.count === 'number') {
-            setOnlineGems(d.count);
-            setGemsInputVal(d.count.toString());
-          }
-        }
-      } catch {
-        // ignore
-      }
-    };
-    fetchGems();
-  }, []);
+    setGemsInputVal(onlineGems.toString());
+  }, [onlineGems]);
 
   const handleSaveGems = async () => {
     const parsed = parseInt(gemsInputVal.replace(/[^0-9]/g, ''), 10) || 0;
     try {
-      const res = await fetch('/api/gems/set', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: parsed })
-      });
-      if (res.ok) {
-        const d = await res.json();
-        setOnlineGems(d.count);
-        setSavedSuccess(isAr ? 'تم تحديث عداد الجواهر الأونلاين بنجاح!' : 'Compteur de joyaux en ligne mis à jour !');
-        setTimeout(() => setSavedSuccess(null), 3000);
-      }
-    } catch {
-      // ignore
+      await onSaveGems(parsed);
+      setOperationError(null);
+      setSavedSuccess(isAr ? 'تم تحديث عداد الجواهر الأونلاين بنجاح!' : 'Compteur de joyaux en ligne mis à jour !');
+      setTimeout(() => setSavedSuccess(null), 3000);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to save the gems counter.');
     }
   };
 
   const handleResetGems = async () => {
     try {
-      const res = await fetch('/api/gems/reset', { method: 'POST' });
-      if (res.ok) {
-        const d = await res.json();
-        setOnlineGems(d.count);
-        setGemsInputVal('0');
-        setSavedSuccess(isAr ? 'تم تصفير عداد الجواهر إلى 0 بنجاح' : 'Joyaux réinitialisés à 0');
-        setTimeout(() => setSavedSuccess(null), 3000);
-      }
-    } catch {
-      // ignore
+      await onResetGems();
+      setGemsInputVal('0');
+      setOperationError(null);
+      setSavedSuccess(isAr ? 'تم تصفير العداد إلى 0 بنجاح' : 'Joyaux réinitialisés à 0');
+      setTimeout(() => setSavedSuccess(null), 3000);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to reset the gems counter.');
     }
   };
 
-  // Handle Login
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanUser = usernameInput.trim().toLowerCase();
-    const cleanPass = passwordInput.trim().toLowerCase();
-
-    if (cleanUser === 'oldbijou' && cleanPass === 'oldbijou') {
-      setIsAuthenticated(true);
+    try {
+      await onLogin(emailInput.trim(), passwordInput);
       setAuthError('');
-      try {
-        sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
-      } catch {
-        // ignore
-      }
-    } else {
-      setAuthError(
-        isAr
-          ? 'اسم المستخدم أو الرمز السري غير صحيح. يرجى التأكد من إدخال oldbijou / oldbijou'
-          : 'Nom d\'utilisateur ou code secret incorrect. Utilisez oldbijou / oldbijou'
-      );
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : (isAr ? 'تعذر تسجيل الدخول.' : 'Connexion impossible.'));
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
     try {
-      sessionStorage.removeItem(AUTH_STORAGE_KEY);
-    } catch {
-      // ignore
+      await onLogout();
+      setOperationError(null);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to sign out.');
     }
   };
 
@@ -305,13 +272,11 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   };
 
   // Master Control: Apply a preset bundle to all numbers
-  const applyPresetBundle = (bundle: { yt: number; ig: number; fb: number; tt: number }, label: string) => {
+  const applyPresetBundle = (bundle: { yt: number; ig: number; fb: number; tt: number }) => {
     setYtCount(bundle.yt.toString());
     setIgCount(bundle.ig.toString());
     setFbCount(bundle.fb.toString());
     setTtCount(bundle.tt.toString());
-    setSavedSuccess(isAr ? `تم تطبيق حزمة: ${label}` : `Préréglage appliqué : ${label}`);
-    setTimeout(() => setSavedSuccess(null), 2500);
   };
 
   // Clear single platform number
@@ -323,31 +288,40 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   };
 
   // Save all numbers at once
-  const handleSaveNumbers = () => {
-    onUpdateMultipleCounts({
-      youtube: currentYt,
-      instagram: currentIg,
-      facebook: currentFb,
-      tiktok: currentTt
-    });
-
-    setSavedSuccess(isAr ? 'تم حفظ وتحديث الأرقام على جميع الأزرار والبطاقات بنجاح!' : 'Métriques enregistrées avec succès !');
-    setTimeout(() => setSavedSuccess(null), 3000);
+  const handleSaveNumbers = async () => {
+    try {
+      await onUpdateMultipleCounts({
+        youtube: currentYt,
+        instagram: currentIg,
+        facebook: currentFb,
+        tiktok: currentTt
+      });
+      setOperationError(null);
+      setSavedSuccess(isAr ? 'تم حفظ وتحديث الأرقام على جميع الأزرار والبطاقات بنجاح!' : 'Métriques enregistrées avec succès !');
+      setTimeout(() => setSavedSuccess(null), 3000);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to save follower counts.');
+    }
   };
 
   // Reset Numbers
-  const handleResetNumbers = () => {
-    onResetDefaults();
-    setYtCount('7690');
-    setIgCount('48500');
-    setFbCount('35200');
-    setTtCount('28400');
-    setSavedSuccess(isAr ? 'تمت استعادة الأرقام الافتراضية بنجاح' : 'Métriques réinitialisées par défaut');
-    setTimeout(() => setSavedSuccess(null), 3000);
+  const handleResetNumbers = async () => {
+    try {
+      await onResetDefaults();
+      setYtCount('7690');
+      setIgCount('48500');
+      setFbCount('35200');
+      setTtCount('28400');
+      setOperationError(null);
+      setSavedSuccess(isAr ? 'تمت استعادة الأرقام الافتراضية بنجاح' : 'Métriques réinitialisées par défaut');
+      setTimeout(() => setSavedSuccess(null), 3000);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to reset follower counts.');
+    }
   };
 
   // Video Management: Add Video (NO placeholders)
-  const handleAddVideoSubmit = (e: React.FormEvent) => {
+  const handleAddVideoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setVideoFormError('');
 
@@ -371,20 +345,23 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
       return;
     }
 
-    const success = onAddVideo({
-      youtubeInput: ytId,
-      titleAr: newVideoTitle.trim(),
-      tagAr: newVideoTag.trim() || 'تحليل كروي',
-      duration: newVideoDuration.trim() || undefined
-    });
-
-    if (success) {
+    try {
+      const success = await onAddVideo({
+        youtubeInput: ytId,
+        titleAr: newVideoTitle.trim(),
+        tagAr: newVideoTag.trim() || 'تحليل كروي',
+        duration: newVideoDuration.trim() || undefined
+      });
+      if (!success) throw new Error('The video could not be created.');
       setNewVideoUrl('');
       setNewVideoTitle('');
       setNewVideoDuration('');
       setVideoFormError('');
       setSavedSuccess(isAr ? 'تمت إضافة الفيديو الجديد بنجاح!' : 'Vidéo ajoutée avec succès !');
       setTimeout(() => setSavedSuccess(null), 3000);
+      setOperationError(null);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to add the video.');
     }
   };
 
@@ -398,28 +375,56 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
   };
 
   // Save edited video
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingVideoId) return;
 
-    onUpdateVideo(editingVideoId, {
-      youtubeInput: editUrl,
-      titleAr: editTitle,
-      tagAr: editTag,
-      duration: editDuration
-    });
-
-    setEditingVideoId(null);
-    setSavedSuccess(isAr ? 'تم تحديث الفيديو بنجاح!' : 'Vidéo modifiée avec succès !');
-    setTimeout(() => setSavedSuccess(null), 3000);
+    try {
+      await onUpdateVideo(editingVideoId, {
+        youtubeInput: editUrl,
+        titleAr: editTitle,
+        tagAr: editTag,
+        duration: editDuration
+      });
+      setEditingVideoId(null);
+      setOperationError(null);
+      setSavedSuccess(isAr ? 'تم تحديث الفيديو بنجاح!' : 'Vidéo modifiée avec succès !');
+      setTimeout(() => setSavedSuccess(null), 3000);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to update the video.');
+    }
   };
 
   // Delete Video
   const handleDeleteVideo = (id: string, title: string) => {
     if (window.confirm(isAr ? `هل أنت متأكد من حذف الفيديو: "${title}"؟` : `Supprimer la vidéo "${title}" ?`)) {
-      onDeleteVideo(id);
-      setSavedSuccess(isAr ? 'تم حذف الفيديو بنجاح' : 'Vidéo supprimée avec succès');
+      void onDeleteVideo(id).then(() => {
+        setOperationError(null);
+        setSavedSuccess(isAr ? 'تم حذف الفيديو بنجاح' : 'Vidéo supprimée avec succès');
+        setTimeout(() => setSavedSuccess(null), 3000);
+      }).catch((error: unknown) => {
+        setOperationError(error instanceof Error ? error.message : 'Unable to delete the video.');
+      });
+    }
+  };
+
+  const handleResetVideos = async () => {
+    try {
+      await onResetVideos();
+      setOperationError(null);
+      setSavedSuccess(isAr ? 'تمت استعادة الفيديوهات الافتراضية' : 'Vidéos réinitialisées');
       setTimeout(() => setSavedSuccess(null), 3000);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to reset videos.');
+    }
+  };
+
+  const handleMoveVideo = async (idx: number, direction: 'up' | 'down') => {
+    try {
+      await onMoveVideo(idx, direction);
+      setOperationError(null);
+    } catch (error) {
+      setOperationError(error instanceof Error ? error.message : 'Unable to reorder videos.');
     }
   };
 
@@ -466,9 +471,13 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
             </p>
           </div>
 
-          {/* Login Form Box (NO placeholders) */}
           <div className="p-8 rounded-3xl bg-[#0d101a] border border-amber-500/30 shadow-2xl shadow-black/80 backdrop-blur-xl">
             <form onSubmit={handleLogin} className="space-y-5">
+              {contentError && (
+                <div role="alert" className="p-3.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-100 text-xs">
+                  {contentError}
+                </div>
+              )}
               {authError && (
                 <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-500/40 text-red-200 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
@@ -478,12 +487,12 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
 
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-amber-300 font-mono mb-2">
-                  {isAr ? 'اسم المستخدم (User):' : 'Nom d\'utilisateur (User) :'}
+                  {isAr ? 'البريد الإلكتروني:' : 'Adresse e-mail :'}
                 </label>
                 <input
-                  type="text"
-                  value={usernameInput}
-                  onChange={(e) => setUsernameInput(e.target.value)}
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
                   autoFocus
                   required
                   className="w-full px-4 py-3 bg-[#07080e] border border-neutral-700 focus:border-amber-400 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/20 font-mono"
@@ -545,6 +554,18 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
           <span>{savedSuccess}</span>
         </div>
       )}
+      {(contentError || operationError) && (
+        <div role="alert" className="mx-auto mt-4 w-full max-w-7xl px-4">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/40 bg-red-950/70 px-4 py-3 text-sm text-red-100">
+            <span>{operationError || contentError}</span>
+            {contentError && (
+              <button type="button" onClick={() => void onRefreshContent()} className="shrink-0 underline font-bold">
+                {isAr ? 'إعادة المحاولة' : 'Réessayer'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Top Admin Navbar */}
       <header className="sticky top-0 z-40 bg-[#090b12]/95 backdrop-blur-xl border-b border-amber-500/20 py-4 px-4 sm:px-8">
@@ -563,7 +584,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 font-mono">
-                {isAr ? 'المشرف:' : 'Admin :'} <code className="text-amber-400">oldbijou</code> · Route: <code className="text-zinc-300">/oldbijonumbers</code>
+                {isAr ? 'إدارة البيانات المشتركة' : 'Gestion des données partagées'} · Route: <code className="text-zinc-300">/oldbijonumbers</code>
               </p>
             </div>
           </div>
@@ -770,10 +791,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                   <button
                     type="button"
                     onClick={() =>
-                      applyPresetBundle(
-                        { yt: 7690, ig: 48500, fb: 35200, tt: 28400 },
-                        isAr ? 'الأرقام الحقيقية الموثقة' : 'Chiffres réels vérifiés'
-                      )
+                      applyPresetBundle({ yt: 7690, ig: 48500, fb: 35200, tt: 28400 })
                     }
                     className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-amber-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-amber-400/50 cursor-pointer"
                   >
@@ -783,10 +801,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                   <button
                     type="button"
                     onClick={() =>
-                      applyPresetBundle(
-                        { yt: 1250000, ig: 4850000, fb: 2350000, tt: 1900000 },
-                        isAr ? 'حزمة الملايين (1M+)' : 'Pack Millions'
-                      )
+                      applyPresetBundle({ yt: 1250000, ig: 4850000, fb: 2350000, tt: 1900000 })
                     }
                     className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-emerald-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-emerald-400/50 cursor-pointer"
                   >
@@ -796,10 +811,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                   <button
                     type="button"
                     onClick={() =>
-                      applyPresetBundle(
-                        { yt: 100000000000, ig: 4850000, fb: 352000000, tt: 28400000 },
-                        isAr ? 'حزمة 100B' : 'Pack 100B'
-                      )
+                      applyPresetBundle({ yt: 100000000000, ig: 4850000, fb: 352000000, tt: 28400000 })
                     }
                     className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-purple-300 hover:text-white text-xs font-mono font-bold border border-neutral-800 hover:border-purple-400/50 cursor-pointer"
                   >
@@ -1498,7 +1510,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
 
                 <button
                   type="button"
-                  onClick={onResetVideos}
+                  onClick={() => void handleResetVideos()}
                   className="text-xs text-zinc-400 hover:text-amber-300 transition-colors flex items-center gap-1.5 font-mono cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -1707,7 +1719,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
                         <div className="flex items-center gap-2 self-end lg:self-auto shrink-0">
                           {/* Reorder Up */}
                           <button
-                            onClick={() => onMoveVideo(idx, 'up')}
+                            onClick={() => void handleMoveVideo(idx, 'up')}
                             disabled={idx === 0}
                             title={isAr ? "تحريك لأعلى" : "Monter"}
                             className="p-2 text-zinc-400 hover:text-white bg-neutral-900 disabled:opacity-30 disabled:pointer-events-none rounded-xl border border-neutral-800 hover:border-neutral-600 cursor-pointer"
@@ -1717,7 +1729,7 @@ export const NumbersAdminPage: React.FC<NumbersAdminPageProps> = ({
 
                           {/* Reorder Down */}
                           <button
-                            onClick={() => onMoveVideo(idx, 'down')}
+                            onClick={() => void handleMoveVideo(idx, 'down')}
                             disabled={idx === videos.length - 1}
                             title={isAr ? "تحريك لأسفل" : "Descendre"}
                             className="p-2 text-zinc-400 hover:text-white bg-neutral-900 disabled:opacity-30 disabled:pointer-events-none rounded-xl border border-neutral-800 hover:border-neutral-600 cursor-pointer"

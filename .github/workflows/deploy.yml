@@ -32,7 +32,15 @@ jobs:
         run: npm ci || npm install
 
       - name: Build app
-        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "Configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY as GitHub Actions variables." >&2
+            exit 1
+          fi
+          npm run build
 
       - name: Upload build
         uses: actions/upload-pages-artifact@v3

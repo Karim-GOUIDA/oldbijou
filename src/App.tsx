@@ -13,11 +13,11 @@ import { DirectContactSection } from './components/DirectContactSection';
 import { QRCodeModal } from './components/QRCodeModal';
 import { QuickDock } from './components/QuickDock';
 import { Footer } from './components/Footer';
-import { StatsManagerModal } from './components/StatsManagerModal';
 import { NumbersAdminPage } from './pages/NumbersAdminPage';
-import { Language } from './data/influencerData';
+import { Language, REAL_YOUTUBE_VIDEOS, RealVideo, SOCIAL_PLATFORMS } from './data/influencerData';
 import { useLiveStats } from './services/statsSync';
-import { useVideos } from './services/videoManager';
+import { buildVideoObject } from './services/videoManager';
+import { useSiteContent } from './services/siteContent';
 import { Check } from 'lucide-react';
 
 function isOldbijouAdminPath(): boolean {
@@ -30,32 +30,67 @@ function isOldbijouAdminPath(): boolean {
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
   const [isQrOpen, setIsQrOpen] = useState(false);
-  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isAdminView, setIsAdminView] = useState<boolean>(isOldbijouAdminPath);
   const [highlightedPlatformId, setHighlightedPlatformId] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Live Auto-Syncing Hook for real-time stats
-  const {
-    platforms,
-    isSyncing,
-    syncSource,
-    refreshNow,
-    updateManualCount,
-    updateMultipleCounts,
-    resetToDefaults,
-    updateApiConfig
-  } = useLiveStats();
+  const siteContent = useSiteContent();
+  const { platforms, isSyncing, syncSource, refreshNow } = useLiveStats(siteContent.content.socialCounts);
+  const videos = siteContent.content.videos;
 
-  // Custom Video Manager Hook (CRUD + persistent storage)
-  const {
-    videos,
-    addVideo,
-    updateVideo,
-    deleteVideo,
-    resetVideos,
-    moveVideo
-  } = useVideos();
+  const updateCounts = (counts: Record<string, number>) =>
+    siteContent.save({ socialCounts: { ...siteContent.content.socialCounts, ...counts } });
+  const resetCounts = () => updateCounts(Object.fromEntries(
+    SOCIAL_PLATFORMS.map((platform) => [platform.id, platform.followersRaw ?? 0])
+  ));
+  const updateVideos = (nextVideos: RealVideo[]) => siteContent.save({ videos: nextVideos });
+  const addVideo = async (data: {
+    youtubeInput: string;
+    titleAr: string;
+    titleFr?: string;
+    tagAr?: string;
+    tagFr?: string;
+    duration?: string;
+  }) => {
+    const video = buildVideoObject(data);
+    if (!video) return false;
+    await updateVideos([video, ...videos]);
+    return true;
+  };
+  const updateVideo = async (id: string, data: {
+    youtubeInput?: string;
+    titleAr?: string;
+    titleFr?: string;
+    tagAr?: string;
+    tagFr?: string;
+    duration?: string;
+  }) => {
+    const current = videos.find((video) => video.id === id);
+    if (!current) throw new Error('The video no longer exists. Refresh and try again.');
+    const next = buildVideoObject({
+      ...current,
+      ...data,
+      youtubeInput: data.youtubeInput || current.youtubeId,
+      titleAr: data.titleAr ?? current.titleAr,
+      titleFr: data.titleFr ?? current.titleFr,
+      tagAr: data.tagAr ?? current.tagAr,
+      tagFr: data.tagFr ?? current.tagFr,
+      id: current.id,
+    });
+    if (!next) throw new Error('The YouTube video ID is invalid.');
+    await updateVideos(videos.map((video) => video.id === id ? next : video));
+  };
+  const deleteVideo = async (id: string) =>
+    updateVideos(videos.filter((video) => video.id !== id));
+  const resetVideos = () => updateVideos(REAL_YOUTUBE_VIDEOS);
+  const moveVideo = async (idx: number, direction: 'up' | 'down') => {
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= videos.length) return;
+    const next = [...videos];
+    const [moved] = next.splice(idx, 1);
+    next.splice(targetIdx, 0, moved);
+    await updateVideos(next);
+  };
 
   useEffect(() => {
     // If there was any legacy hash from previous turns, clean it up so home page remains clean
@@ -116,9 +151,12 @@ export default function App() {
         platforms={platforms}
         isSyncing={isSyncing}
         syncSource={syncSource}
-        onRefresh={refreshNow}
-        onUpdateMultipleCounts={updateMultipleCounts}
-        onResetDefaults={resetToDefaults}
+        onRefresh={async () => {
+          await siteContent.refresh();
+          await refreshNow();
+        }}
+        onUpdateMultipleCounts={updateCounts}
+        onResetDefaults={resetCounts}
         onNavigateHome={navigateToHome}
         videos={videos}
         onAddVideo={addVideo}
@@ -126,6 +164,14 @@ export default function App() {
         onDeleteVideo={deleteVideo}
         onResetVideos={resetVideos}
         onMoveVideo={moveVideo}
+        onlineGems={siteContent.content.gemsCount}
+        onSaveGems={(count) => siteContent.save({ gemsCount: count })}
+        onResetGems={() => siteContent.save({ gemsCount: 0 })}
+        isAuthenticated={siteContent.isAuthenticated}
+        onLogin={siteContent.signIn}
+        onLogout={siteContent.signOut}
+        contentError={siteContent.loadError}
+        onRefreshContent={siteContent.refresh}
       />
     );
   }
@@ -156,6 +202,15 @@ export default function App() {
       />
 
       {/* Main Sections */}
+      {siteContent.loadError && (
+        <div role="status" className="bg-red-950/90 border-y border-red-500/40 px-4 py-2 text-center text-xs text-red-100">
+          <span>{isAr ? 'تعذر تحديث البيانات المشتركة:' : 'Impossible de charger les données partagées :'}</span>
+          {' '}{siteContent.loadError}{' '}
+          <button type="button" onClick={() => void siteContent.refresh()} className="underline font-bold">
+            {isAr ? 'إعادة المحاولة' : 'Réessayer'}
+          </button>
+        </div>
+      )}
       <main className="flex-1">
         {/* Hero Section */}
         <HeroSection
@@ -186,7 +241,7 @@ export default function App() {
         />
 
         {/* Direct Contact & Fan Hype Section */}
-        <DirectContactSection lang={lang} platforms={platforms} />
+        <DirectContactSection lang={lang} platforms={platforms} gemsCount={siteContent.content.gemsCount} />
       </main>
 
       {/* Footer */}
@@ -208,19 +263,6 @@ export default function App() {
         isOpen={isQrOpen}
         onClose={() => setIsQrOpen(false)}
         lang={lang}
-      />
-
-      {/* Real Live Stats & API Manager Modal */}
-      <StatsManagerModal
-        isOpen={isStatsOpen}
-        onClose={() => setIsStatsOpen(false)}
-        lang={lang}
-        platforms={platforms}
-        isSyncing={isSyncing}
-        syncSource={syncSource}
-        onRefresh={refreshNow}
-        onUpdateManualCount={updateManualCount}
-        onUpdateApiConfig={updateApiConfig}
       />
     </div>
   );
