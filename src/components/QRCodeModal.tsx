@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Copy, Check, Gem } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { INFLUENCER_PROFILE, Language } from '../data/influencerData';
 
 interface QRCodeModalProps {
@@ -10,16 +11,33 @@ interface QRCodeModalProps {
 
 export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, lang = 'ar' }) => {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
   const isAr = lang === 'ar';
 
   if (!isOpen) return null;
 
-  const profileUrl = typeof window !== 'undefined' ? window.location.href : 'https://www.youtube.com/@oldbijou-1/videos';
+  const profileUrl = typeof window === 'undefined'
+    ? 'https://oldbijou.fyi/'
+    : (() => {
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const lastSegment = pathSegments[pathSegments.length - 1]?.toLowerCase();
+      if (lastSegment === 'oldbijonumbers' || lastSegment === 'oldbijounumbers') {
+        pathSegments.pop();
+      }
+      const publicPath = `/${pathSegments.join('/')}${pathSegments.length ? '/' : ''}`;
+      return new URL(publicPath, window.location.origin).toString();
+    })();
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(profileUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopyError(false);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopyError(true);
+      setCopied(false);
+    }
   };
 
   return (
@@ -47,46 +65,15 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, lang 
 
         {/* QR Code */}
         <div className="p-5 my-5 bg-white rounded-2xl shadow-inner mx-auto inline-block border-2 border-amber-400/40">
-          <svg className="w-48 h-48" viewBox="0 0 100 100" fill="none">
-            <rect x="5" y="5" width="26" height="26" fill="#09090b" rx="4" />
-            <rect x="9" y="9" width="18" height="18" fill="white" rx="2" />
-            <rect x="13" y="13" width="10" height="10" fill="#09090b" rx="2" />
-
-            <rect x="69" y="5" width="26" height="26" fill="#09090b" rx="4" />
-            <rect x="73" y="9" width="18" height="18" fill="white" rx="2" />
-            <rect x="77" y="13" width="10" height="10" fill="#09090b" rx="2" />
-
-            <rect x="5" y="69" width="26" height="26" fill="#09090b" rx="4" />
-            <rect x="9" y="73" width="18" height="18" fill="white" rx="2" />
-            <rect x="13" y="77" width="10" height="10" fill="#09090b" rx="2" />
-
-            <rect x="36" y="8" width="6" height="6" fill="#09090b" />
-            <rect x="46" y="8" width="6" height="6" fill="#09090b" />
-            <rect x="56" y="8" width="6" height="6" fill="#09090b" />
-            <rect x="36" y="18" width="6" height="6" fill="#09090b" />
-            <rect x="48" y="22" width="6" height="6" fill="#09090b" />
-            <rect x="58" y="18" width="6" height="6" fill="#09090b" />
-
-            <rect x="8" y="36" width="6" height="6" fill="#09090b" />
-            <rect x="18" y="46" width="6" height="6" fill="#09090b" />
-            <rect x="8" y="56" width="6" height="6" fill="#09090b" />
-
-            <rect x="36" y="36" width="28" height="28" fill="#F59E0B" rx="4" />
-            <circle cx="50" cy="50" r="8" fill="#09090b" />
-            <circle cx="50" cy="50" r="4" fill="#F59E0B" />
-
-            <rect x="72" y="36" width="6" height="6" fill="#09090b" />
-            <rect x="82" y="42" width="6" height="6" fill="#09090b" />
-            <rect x="72" y="52" width="6" height="6" fill="#09090b" />
-            <rect x="86" y="58" width="6" height="6" fill="#09090b" />
-
-            <rect x="36" y="72" width="6" height="6" fill="#09090b" />
-            <rect x="46" y="78" width="6" height="6" fill="#09090b" />
-            <rect x="56" y="72" width="6" height="6" fill="#09090b" />
-            <rect x="42" y="86" width="6" height="6" fill="#09090b" />
-            <rect x="72" y="74" width="8" height="8" fill="#09090b" />
-            <rect x="84" y="84" width="6" height="6" fill="#09090b" />
-          </svg>
+          <QRCodeSVG
+            value={profileUrl}
+            size={192}
+            level="M"
+            marginSize={2}
+            bgColor="#ffffff"
+            fgColor="#09090b"
+            title={isAr ? 'رمز QR لفتح موقع OLDBIJOU' : 'QR code pour ouvrir le site OLDBIJOU'}
+          />
         </div>
 
         <h4 className="font-display text-xl font-black text-white font-mono">
@@ -112,6 +99,11 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ isOpen, onClose, lang 
             </>
           )}
         </button>
+        {copyError && (
+          <p role="alert" className="mt-2 text-xs text-red-400">
+            {isAr ? 'تعذر نسخ الرابط. يرجى المحاولة مرة أخرى.' : 'Impossible de copier le lien. Veuillez réessayer.'}
+          </p>
+        )}
       </div>
     </div>
   );
